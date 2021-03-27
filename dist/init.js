@@ -15,7 +15,7 @@ if (!fs.existsSync(path0))
     "password":"xxxxxxxx",
     "batchNumber":-1,
     "domain":"ddu6.xyz",
-    "congestionSleep":5000,
-    "errSleep":30000,
-    "recaptchaSleep":300000
+    "congestionSleep":3,
+    "errSleep":5,
+    "recaptchaSleep":60
 }`);

@@ -3,9 +3,9 @@ import * as http from 'http'
 import * as fs from 'fs'
 import * as path from 'path'
 let domain='ddu6.xyz'
-let congestionSleep=5000
-let errSleep=30000
-let recaptchaSleep=300000
+let congestionSleep=3
+let errSleep=5
+let recaptchaSleep=60
 interface Res{
     body:string
     buffer:Buffer
@@ -372,6 +372,8 @@ async function updatePages(key:string,pages:number[],token:string,password:strin
 }
 async function updateBatch(batchNumber:number,token:string,password:string){
     if(batchNumber===-1)return await updatePages('',Array.from({length:100},(v,i)=>i+1),token,password)
+    if(batchNumber%1===0)return await updateHoles(idsToRIds([],batchNumber),token,password)
+    batchNumber=Math.floor(batchNumber)
     const ids=await getIds(batchNumber,token,password)
     if(ids===401)return 401
     return await updateHoles(idsToRIds(ids,batchNumber),token,password)

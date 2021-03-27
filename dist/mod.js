@@ -6,9 +6,9 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 let domain = 'ddu6.xyz';
-let congestionSleep = 5000;
-let errSleep = 30000;
-let recaptchaSleep = 300000;
+let congestionSleep = 3;
+let errSleep = 5;
+let recaptchaSleep = 60;
 function getDate() {
     const date = new Date();
     return [date.getMonth() + 1, date.getDate()].map(val => val.toString().padStart(2, '0')).join('-') + ' ' + [date.getHours(), date.getMinutes(), date.getSeconds()].map(val => val.toString().padStart(2, '0')).join(':') + ':' + date.getMilliseconds().toString().padStart(3, '0');
@@ -389,6 +389,9 @@ async function updatePages(key, pages, token, password) {
 async function updateBatch(batchNumber, token, password) {
     if (batchNumber === -1)
         return await updatePages('', Array.from({ length: 100 }, (v, i) => i + 1), token, password);
+    if (batchNumber % 1 === 0)
+        return await updateHoles(idsToRIds([], batchNumber), token, password);
+    batchNumber = Math.floor(batchNumber);
     const ids = await getIds(batchNumber, token, password);
     if (ids === 401)
         return 401;
