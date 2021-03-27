@@ -12,6 +12,7 @@ if(!fs.existsSync(path0))fs.writeFileSync(path0,
     "password":"xxxxxxxx",
     "batchNumber":-1,
     "domain":"ddu6.xyz",
+    "threads":2,
     "congestionSleep":3,
     "errSleep":5,
     "recaptchaSleep":60

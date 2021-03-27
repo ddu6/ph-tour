@@ -3,6 +3,7 @@ import * as http from 'http'
 import * as fs from 'fs'
 import * as path from 'path'
 let domain='ddu6.xyz'
+let threads=2
 let congestionSleep=3
 let errSleep=5
 let recaptchaSleep=60
@@ -18,6 +19,7 @@ interface Config{
     password:string
     batchNumber:number
     domain:string
+    threads:number
     congestionSleep:number
     errSleep:number
     recaptchaSleep:number
@@ -321,11 +323,18 @@ async function updateHole(id:number,token:string,password:string){
     }
 }
 async function updateHoles(ids:number[],token:string,password:string){
+    let promises:Promise<200|401>[]=[]
+    let subIds:number[]=[]
     for(let i=0;i<ids.length;i++){
         const id=ids[i]
-        const result=await updateHole(id,token,password)
-        if(result===401)return 401
-        log(`#${id} toured.`)
+        promises.push(updateHole(id,token,password))
+        subIds.push(id)
+        if(promises.length<threads&&i<ids.length-1)continue
+        const result=await Promise.all(promises)
+        if(result.includes(401))return 401
+        log(`#${subIds.join(',')} toured.`)
+        promises=[]
+        subIds=[]
     }
     return 200
 }
@@ -336,11 +345,18 @@ async function basicallyUpdatePage(key:string,page:number|string,token:string,pa
     if(result===404)return 404
     if(typeof result==='number')return 500
     const data=result.data
+    let promises:Promise<200|401>[]=[]
+    let subIds:(number|string)[]=[]
     for(let i=0;i<data.length;i++){
         const {pid,reply}=data[i]
-        const result=await updateComments(pid,Number(reply),token,password)
-        if(result===401)return 401
-        log(`#${pid} toured.`)
+        promises.push(updateComments(pid,Number(reply),token,password))
+        subIds.push(pid)
+        if(promises.length<threads&&i<data.length-1)continue
+        const result=await Promise.all(promises)
+        if(result.includes(401))return 401
+        log(`#${subIds.join(',')} toured.`)
+        promises=[]
+        subIds=[]
     }
     return 200
 }
@@ -382,6 +398,7 @@ export async function main(){
     const config:Config=JSON.parse(fs.readFileSync(path.join(__dirname,'../config.json'),{encoding:'utf8'}))
     const {token,password,batchNumber}=config
     domain=config.domain
+    threads=config.threads
     congestionSleep=config.congestionSleep
     errSleep=config.errSleep
     recaptchaSleep=config.recaptchaSleep
