@@ -262,6 +262,7 @@ async function updateComments(id, reply, token, password) {
         if (result === 423) {
             log('423.');
             await sleep(recaptchaSleep);
+            continue;
         }
         if (result === 401)
             return 401;

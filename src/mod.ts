@@ -268,6 +268,7 @@ async function updateComments(id:number|string,reply:number,token:string,passwor
         if(result===423){
             log('423.')
             await sleep(recaptchaSleep)
+            continue
         }
         if(result===401)return 401
         return 200
