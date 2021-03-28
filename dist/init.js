@@ -18,5 +18,6 @@ if (!fs.existsSync(path0))
     "threads":2,
     "congestionSleep":3,
     "errSleep":5,
-    "recaptchaSleep":60
+    "recaptchaSleep":60,
+    "timeout":10
 }`);

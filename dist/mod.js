@@ -10,6 +10,7 @@ let threads = 2;
 let congestionSleep = 3;
 let errSleep = 5;
 let recaptchaSleep = 60;
+let timeout = 10;
 function getDate() {
     const date = new Date();
     return [date.getMonth() + 1, date.getDate()].map(val => val.toString().padStart(2, '0')).join('-') + ' ' + [date.getHours(), date.getMinutes(), date.getSeconds()].map(val => val.toString().padStart(2, '0')).join(':') + ':' + date.getMilliseconds().toString().padStart(3, '0');
@@ -57,6 +58,9 @@ async function basicallyGet(url, params = {}, cookie = '', referer = '') {
     if (referer.length > 0)
         headers.Referer = referer;
     const result = await new Promise((resolve) => {
+        setTimeout(() => {
+            resolve(500);
+        }, timeout * 1000);
         const httpsOrHTTP = url.startsWith('https://') ? https : http;
         httpsOrHTTP.get(url, {
             headers: headers
@@ -423,6 +427,7 @@ async function main() {
     congestionSleep = config.congestionSleep;
     errSleep = config.errSleep;
     recaptchaSleep = config.recaptchaSleep;
+    timeout = config.timeout;
     const result = await updateBatch(batchNumber, token, password);
     if (result === 401) {
         log('401.');

@@ -7,6 +7,7 @@ let threads=2
 let congestionSleep=3
 let errSleep=5
 let recaptchaSleep=60
+let timeout=10
 interface Res{
     body:string
     buffer:Buffer
@@ -23,6 +24,7 @@ interface Config{
     congestionSleep:number
     errSleep:number
     recaptchaSleep:number
+    timeout:number
 }
 interface HoleData{
     text:string|null|undefined
@@ -85,6 +87,9 @@ async function basicallyGet(url:string,params:Record<string,string>={},cookie=''
     if(cookie.length>0)headers.Cookie=cookie
     if(referer.length>0)headers.Referer=referer
     const result=await new Promise((resolve:(val:number|Res)=>void)=>{
+        setTimeout(()=>{
+            resolve(500)
+        },timeout*1000)
         const httpsOrHTTP=url.startsWith('https://')?https:http
         httpsOrHTTP.get(url,{
             headers:headers
@@ -403,6 +408,7 @@ export async function main(){
     congestionSleep=config.congestionSleep
     errSleep=config.errSleep
     recaptchaSleep=config.recaptchaSleep
+    timeout=config.timeout
     const result=await updateBatch(batchNumber,token,password)
     if(result===401){
         log('401.')
