@@ -19,5 +19,6 @@ if (!fs.existsSync(path0))
     "congestionSleep":3,
     "errSleep":5,
     "recaptchaSleep":60,
-    "timeout":10
+    "timeout":10,
+    "interval":1
 }`);

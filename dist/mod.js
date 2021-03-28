@@ -11,6 +11,7 @@ let congestionSleep = 3;
 let errSleep = 5;
 let recaptchaSleep = 60;
 let timeout = 10;
+let interval = 1;
 function getDate() {
     const date = new Date();
     return [date.getMonth() + 1, date.getDate()].map(val => val.toString().padStart(2, '0')).join('-') + ' ' + [date.getHours(), date.getMinutes(), date.getSeconds()].map(val => val.toString().padStart(2, '0')).join(':') + ':' + date.getMilliseconds().toString().padStart(3, '0');
@@ -349,6 +350,7 @@ async function updateHoles(ids, token, password) {
         log(`#${subIds.join(',')} toured.`);
         promises = [];
         subIds = [];
+        await sleep(interval);
     }
     return 200;
 }
@@ -377,6 +379,7 @@ async function basicallyUpdatePage(key, page, token, password) {
         log(`#${subIds.join(',')} toured.`);
         promises = [];
         subIds = [];
+        await sleep(interval);
     }
     return 200;
 }
@@ -428,6 +431,7 @@ async function main() {
     errSleep = config.errSleep;
     recaptchaSleep = config.recaptchaSleep;
     timeout = config.timeout;
+    interval = config.interval;
     const result = await updateBatch(batchNumber, token, password);
     if (result === 401) {
         log('401.');

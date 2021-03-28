@@ -8,6 +8,7 @@ let congestionSleep=3
 let errSleep=5
 let recaptchaSleep=60
 let timeout=10
+let interval=1
 interface Res{
     body:string
     buffer:Buffer
@@ -25,6 +26,7 @@ interface Config{
     errSleep:number
     recaptchaSleep:number
     timeout:number
+    interval:number
 }
 interface HoleData{
     text:string|null|undefined
@@ -341,6 +343,7 @@ async function updateHoles(ids:number[],token:string,password:string){
         log(`#${subIds.join(',')} toured.`)
         promises=[]
         subIds=[]
+        await sleep(interval)
     }
     return 200
 }
@@ -363,6 +366,7 @@ async function basicallyUpdatePage(key:string,page:number|string,token:string,pa
         log(`#${subIds.join(',')} toured.`)
         promises=[]
         subIds=[]
+        await sleep(interval)
     }
     return 200
 }
@@ -409,6 +413,7 @@ export async function main(){
     errSleep=config.errSleep
     recaptchaSleep=config.recaptchaSleep
     timeout=config.timeout
+    interval=config.interval
     const result=await updateBatch(batchNumber,token,password)
     if(result===401){
         log('401.')
