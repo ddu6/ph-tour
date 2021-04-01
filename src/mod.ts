@@ -2,31 +2,13 @@ import * as https from 'https'
 import * as http from 'http'
 import * as fs from 'fs'
 import * as path from 'path'
-let base='https://ddu6.xyz/services/ph-get/'
-let threads=2
-let congestionSleep=3
-let errSleep=5
-let recaptchaSleep=60
-let timeout=10
-let interval=1
+import {config} from './init'
 interface Res{
     body:string
     buffer:Buffer
     cookie:string
     headers:http.IncomingHttpHeaders
     status:number
-}
-interface Config{
-    token:string
-    password:string
-    batchNumber:number
-    base:string
-    threads:number
-    congestionSleep:number
-    errSleep:number
-    recaptchaSleep:number
-    timeout:number
-    interval:number
 }
 interface HoleData{
     text:string|null|undefined
@@ -91,7 +73,7 @@ async function basicallyGet(url:string,params:Record<string,string>={},cookie=''
     const result=await new Promise((resolve:(val:number|Res)=>void)=>{
         setTimeout(()=>{
             resolve(500)
-        },timeout*1000)
+        },config.timeout*1000)
         const httpsOrHTTP=url.startsWith('https://')?https:http
         httpsOrHTTP.get(url,{
             headers:headers
@@ -143,7 +125,7 @@ async function basicallyGet(url:string,params:Record<string,string>={},cookie=''
     return result
 }
 async function getResult(path:string,params:Record<string,string>={}){
-    const result=await basicallyGet(`${base}${path}`,params)
+    const result=await basicallyGet(`${config.base}${path}`,params)
     if(typeof result==='number')return result
     const {status,body}=result
     if(status!==200)return status
@@ -171,12 +153,12 @@ async function getIds(batchNumber:number,token:string,password:string){
         const result=await basicallyGetIds(batchNumber,token,password)
         if(result===503){
             log('503.')
-            await sleep(congestionSleep)
+            await sleep(config.congestionSleep)
             continue
         }
         if(result===500){
             log('500.')
-            await sleep(errSleep)
+            await sleep(config.errSleep)
             continue
         }
         if(result===401)return 401
@@ -264,17 +246,17 @@ async function updateComments(id:number|string,reply:number,token:string,passwor
         const result=await basicallyUpdateComments(id,reply,token,password)
         if(result===503){
             log('503.')
-            await sleep(congestionSleep)
+            await sleep(config.congestionSleep)
             continue
         }
         if(result===500){
             log('500.')
-            await sleep(errSleep)
+            await sleep(config.errSleep)
             continue
         }
         if(result===423){
             log('423.')
-            await sleep(recaptchaSleep)
+            await sleep(config.recaptchaSleep)
             continue
         }
         if(result===401)return 401
@@ -318,12 +300,12 @@ async function updateHole(id:number,token:string,password:string){
         const result=await basicallyUpdateHole(id,token,password)
         if(result===503){
             log('503.')
-            await sleep(congestionSleep)
+            await sleep(config.congestionSleep)
             continue
         }
         if(result===500){
             log('500.')
-            await sleep(errSleep)
+            await sleep(config.errSleep)
             continue
         }
         if(result===401)return 401
@@ -337,13 +319,13 @@ async function updateHoles(ids:number[],token:string,password:string){
         const id=ids[i]
         promises.push(updateHole(id,token,password))
         subIds.push(id)
-        if(promises.length<threads&&i<ids.length-1)continue
+        if(promises.length<config.threads&&i<ids.length-1)continue
         const result=await Promise.all(promises)
         if(result.includes(401))return 401
         log(`#${subIds.join(',')} toured.`)
         promises=[]
         subIds=[]
-        await sleep(interval)
+        await sleep(config.interval)
     }
     return 200
 }
@@ -360,13 +342,13 @@ async function basicallyUpdatePage(key:string,page:number|string,token:string,pa
         const {pid,reply}=data[i]
         promises.push(updateComments(pid,Number(reply),token,password))
         subIds.push(pid)
-        if(promises.length<threads&&i<data.length-1)continue
+        if(promises.length<config.threads&&i<data.length-1)continue
         const result=await Promise.all(promises)
         if(result.includes(401))return 401
         log(`#${subIds.join(',')} toured.`)
         promises=[]
         subIds=[]
-        await sleep(interval)
+        await sleep(config.interval)
     }
     return 200
 }
@@ -375,12 +357,12 @@ async function updatePage(key:string,page:number,token:string,password:string){
         const result=await basicallyUpdatePage(key,page,token,password)
         if(result===503){
             log('503.')
-            await sleep(congestionSleep)
+            await sleep(config.congestionSleep)
             continue
         }
         if(result===500){
             log('500.')
-            await sleep(errSleep)
+            await sleep(config.errSleep)
             continue
         }
         if(result===401)return 401
@@ -405,15 +387,8 @@ async function updateBatch(batchNumber:number,token:string,password:string){
     return await updateHoles(idsToRIds(ids,batchNumber),token,password)
 }
 export async function main(){
-    const config:Config=JSON.parse(fs.readFileSync(path.join(__dirname,'../config.json'),{encoding:'utf8'}))
+    Object.assign(config,JSON.parse(fs.readFileSync(path.join(__dirname,'../config.json'),{encoding:'utf8'})))
     const {token,password,batchNumber}=config
-    base=config.base
-    threads=config.threads
-    congestionSleep=config.congestionSleep
-    errSleep=config.errSleep
-    recaptchaSleep=config.recaptchaSleep
-    timeout=config.timeout
-    interval=config.interval
     const result=await updateBatch(batchNumber,token,password)
     if(result===401){
         log('401.')

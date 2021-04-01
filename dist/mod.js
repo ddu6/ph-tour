@@ -5,13 +5,7 @@ const https = require("https");
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-let base = 'https://ddu6.xyz/services/ph-get/';
-let threads = 2;
-let congestionSleep = 3;
-let errSleep = 5;
-let recaptchaSleep = 60;
-let timeout = 10;
-let interval = 1;
+const init_1 = require("./init");
 function getDate() {
     const date = new Date();
     return [date.getMonth() + 1, date.getDate()].map(val => val.toString().padStart(2, '0')).join('-') + ' ' + [date.getHours(), date.getMinutes(), date.getSeconds()].map(val => val.toString().padStart(2, '0')).join(':') + ':' + date.getMilliseconds().toString().padStart(3, '0');
@@ -61,7 +55,7 @@ async function basicallyGet(url, params = {}, cookie = '', referer = '') {
     const result = await new Promise((resolve) => {
         setTimeout(() => {
             resolve(500);
-        }, timeout * 1000);
+        }, init_1.config.timeout * 1000);
         const httpsOrHTTP = url.startsWith('https://') ? https : http;
         httpsOrHTTP.get(url, {
             headers: headers
@@ -115,7 +109,7 @@ async function basicallyGet(url, params = {}, cookie = '', referer = '') {
     return result;
 }
 async function getResult(path, params = {}) {
-    const result = await basicallyGet(`${base}${path}`, params);
+    const result = await basicallyGet(`${init_1.config.base}${path}`, params);
     if (typeof result === 'number')
         return result;
     const { status, body } = result;
@@ -151,12 +145,12 @@ async function getIds(batchNumber, token, password) {
         const result = await basicallyGetIds(batchNumber, token, password);
         if (result === 503) {
             log('503.');
-            await sleep(congestionSleep);
+            await sleep(init_1.config.congestionSleep);
             continue;
         }
         if (result === 500) {
             log('500.');
-            await sleep(errSleep);
+            await sleep(init_1.config.errSleep);
             continue;
         }
         if (result === 401)
@@ -256,17 +250,17 @@ async function updateComments(id, reply, token, password) {
         const result = await basicallyUpdateComments(id, reply, token, password);
         if (result === 503) {
             log('503.');
-            await sleep(congestionSleep);
+            await sleep(init_1.config.congestionSleep);
             continue;
         }
         if (result === 500) {
             log('500.');
-            await sleep(errSleep);
+            await sleep(init_1.config.errSleep);
             continue;
         }
         if (result === 423) {
             log('423.');
-            await sleep(recaptchaSleep);
+            await sleep(init_1.config.recaptchaSleep);
             continue;
         }
         if (result === 401)
@@ -322,12 +316,12 @@ async function updateHole(id, token, password) {
         const result = await basicallyUpdateHole(id, token, password);
         if (result === 503) {
             log('503.');
-            await sleep(congestionSleep);
+            await sleep(init_1.config.congestionSleep);
             continue;
         }
         if (result === 500) {
             log('500.');
-            await sleep(errSleep);
+            await sleep(init_1.config.errSleep);
             continue;
         }
         if (result === 401)
@@ -342,7 +336,7 @@ async function updateHoles(ids, token, password) {
         const id = ids[i];
         promises.push(updateHole(id, token, password));
         subIds.push(id);
-        if (promises.length < threads && i < ids.length - 1)
+        if (promises.length < init_1.config.threads && i < ids.length - 1)
             continue;
         const result = await Promise.all(promises);
         if (result.includes(401))
@@ -350,7 +344,7 @@ async function updateHoles(ids, token, password) {
         log(`#${subIds.join(',')} toured.`);
         promises = [];
         subIds = [];
-        await sleep(interval);
+        await sleep(init_1.config.interval);
     }
     return 200;
 }
@@ -371,7 +365,7 @@ async function basicallyUpdatePage(key, page, token, password) {
         const { pid, reply } = data[i];
         promises.push(updateComments(pid, Number(reply), token, password));
         subIds.push(pid);
-        if (promises.length < threads && i < data.length - 1)
+        if (promises.length < init_1.config.threads && i < data.length - 1)
             continue;
         const result = await Promise.all(promises);
         if (result.includes(401))
@@ -379,7 +373,7 @@ async function basicallyUpdatePage(key, page, token, password) {
         log(`#${subIds.join(',')} toured.`);
         promises = [];
         subIds = [];
-        await sleep(interval);
+        await sleep(init_1.config.interval);
     }
     return 200;
 }
@@ -388,12 +382,12 @@ async function updatePage(key, page, token, password) {
         const result = await basicallyUpdatePage(key, page, token, password);
         if (result === 503) {
             log('503.');
-            await sleep(congestionSleep);
+            await sleep(init_1.config.congestionSleep);
             continue;
         }
         if (result === 500) {
             log('500.');
-            await sleep(errSleep);
+            await sleep(init_1.config.errSleep);
             continue;
         }
         if (result === 401)
@@ -423,15 +417,8 @@ async function updateBatch(batchNumber, token, password) {
     return await updateHoles(idsToRIds(ids, batchNumber), token, password);
 }
 async function main() {
-    const config = JSON.parse(fs.readFileSync(path.join(__dirname, '../config.json'), { encoding: 'utf8' }));
-    const { token, password, batchNumber } = config;
-    base = config.base;
-    threads = config.threads;
-    congestionSleep = config.congestionSleep;
-    errSleep = config.errSleep;
-    recaptchaSleep = config.recaptchaSleep;
-    timeout = config.timeout;
-    interval = config.interval;
+    Object.assign(init_1.config, JSON.parse(fs.readFileSync(path.join(__dirname, '../config.json'), { encoding: 'utf8' })));
+    const { token, password, batchNumber } = init_1.config;
     const result = await updateBatch(batchNumber, token, password);
     if (result === 401) {
         log('401.');
