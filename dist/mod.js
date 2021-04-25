@@ -5,6 +5,7 @@ const https = require("https");
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const child_process_1 = require("child_process");
 const init_1 = require("./init");
 function getDate() {
     const date = new Date();
@@ -260,6 +261,9 @@ async function updateComments(id, reply, token, password) {
         }
         if (result === 423) {
             log('423.');
+            if (init_1.config.autoUnlock) {
+                await unlock();
+            }
             await sleep(init_1.config.recaptchaSleep);
             continue;
         }
@@ -415,6 +419,16 @@ async function updateBatch(batchNumber, token, password) {
     if (ids === 401)
         return 401;
     return await updateHoles(idsToRIds(ids, batchNumber), token, password);
+}
+let unlocking = false;
+async function unlock() {
+    if (unlocking)
+        return;
+    unlocking = true;
+    const cp = child_process_1.spawn('google-chrome', ['pkuhelper.pku.edu.cn/hole']);
+    await sleep(init_1.config.unlockingSleep);
+    cp.kill();
+    unlocking = false;
 }
 async function main() {
     Object.assign(init_1.config, JSON.parse(fs.readFileSync(path.join(__dirname, '../config.json'), { encoding: 'utf8' })));

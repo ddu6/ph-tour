@@ -2,6 +2,7 @@ import * as https from 'https'
 import * as http from 'http'
 import * as fs from 'fs'
 import * as path from 'path'
+import {spawn} from 'child_process'
 import {config} from './init'
 interface Res{
     body:string
@@ -256,6 +257,9 @@ async function updateComments(id:number|string,reply:number,token:string,passwor
         }
         if(result===423){
             log('423.')
+            if(config.autoUnlock){
+                await unlock()
+            }
             await sleep(config.recaptchaSleep)
             continue
         }
@@ -385,6 +389,15 @@ async function updateBatch(batchNumber:number,token:string,password:string){
     const ids=await getIds(batchNumber,token,password)
     if(ids===401)return 401
     return await updateHoles(idsToRIds(ids,batchNumber),token,password)
+}
+let unlocking=false
+async function unlock(){
+    if(unlocking)return
+    unlocking=true
+    const cp=spawn('google-chrome',['pkuhelper.pku.edu.cn/hole'])
+    await sleep(config.unlockingSleep)
+    cp.kill()
+    unlocking=false
 }
 export async function main(){
     Object.assign(config,JSON.parse(fs.readFileSync(path.join(__dirname,'../config.json'),{encoding:'utf8'})))

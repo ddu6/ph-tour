@@ -10,12 +10,14 @@ export const config={
     password:"xxxxxxxx",
     batchNumber:-1,
     base:"https://ddu6.xyz/services/ph-get/",
-    threads:2,
-    congestionSleep:3,
-    errSleep:5,
-    recaptchaSleep:60,
-    timeout:10,
-    interval:1
+    threads:5,
+    congestionSleep:0.5,
+    errSleep:1,
+    recaptchaSleep:10,
+    timeout:5,
+    interval:1,
+    autoUnlock:false,
+    unlockingSleep:30
 }
 const path0=path.join(__dirname,'../config.json')
 if(!fs.existsSync(path0))fs.writeFileSync(path0,JSON.stringify(config).replace(/([,{])/g,'$1\n    ').replace('}','\n}\n'))
