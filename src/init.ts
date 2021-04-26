@@ -20,4 +20,4 @@ export const config={
     unlockingSleep:30
 }
 const path0=path.join(__dirname,'../config.json')
-if(!fs.existsSync(path0))fs.writeFileSync(path0,JSON.stringify(config).replace(/([,{])/g,'$1\n    ').replace('}','\n}\n'))
+if(!fs.existsSync(path0))fs.writeFileSync(path0,JSON.stringify(config,null,4))
