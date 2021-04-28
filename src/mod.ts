@@ -403,6 +403,17 @@ async function updateBatch(batchNumber:number,token:string,password:string){
     if(ids===401)return 401
     return await updateHoles(idsToRIds(ids,batchNumber),token,password)
 }
+async function updateBatches(start:number,length:number,token:string,password:string){
+    if(start===-1){
+        length=1
+    }
+    for(let i=0;i<length;i++){
+        const batchNumber=start+i
+        const result=await updateBatch(batchNumber,token,password)
+        if(result===401)return 401
+    }
+    return 200
+}
 async function unlock(){
     if(unlocking)return
     unlocking=true
@@ -413,8 +424,8 @@ async function unlock(){
 }
 export async function main(){
     Object.assign(config,JSON.parse(fs.readFileSync(path.join(__dirname,'../config.json'),{encoding:'utf8'})))
-    const {token,password,batchNumber}=config
-    const result=await updateBatch(batchNumber,token,password)
+    const {token,password,batches:{start,length}}=config
+    const result=await updateBatches(start,length,token,password)
     if(result===401){
         log('401.')
     }else{

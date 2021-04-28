@@ -12,7 +12,10 @@ const path = require("path");
 exports.config = {
     token: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     password: "xxxxxxxx",
-    batchNumber: -1,
+    batches: {
+        start: -1,
+        length: 1
+    },
     base: "https://ddu6.xyz/services/ph-get/",
     threads: 5,
     congestionSleep: 0.5,
