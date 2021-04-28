@@ -25,4 +25,4 @@ exports.config = {
 };
 const path0 = path.join(__dirname, '../config.json');
 if (!fs.existsSync(path0))
-    fs.writeFileSync(path0, JSON.stringify(exports.config).replace(/([,{])/g, '$1\n    ').replace('}', '\n}\n'));
+    fs.writeFileSync(path0, JSON.stringify(exports.config, null, 4));

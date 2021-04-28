@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const child_process_1 = require("child_process");
 const init_1 = require("./init");
+let unlocking = false;
 function getDate() {
     const date = new Date();
     return [date.getMonth() + 1, date.getDate()].map(val => val.toString().padStart(2, '0')).join('-') + ' ' + [date.getHours(), date.getMinutes(), date.getSeconds()].map(val => val.toString().padStart(2, '0')).join(':') + ':' + date.getMilliseconds().toString().padStart(3, '0');
@@ -248,6 +249,10 @@ async function basicallyUpdateComments(id, reply, token, password) {
 }
 async function updateComments(id, reply, token, password) {
     while (true) {
+        if (unlocking) {
+            await sleep(init_1.config.recaptchaSleep);
+            continue;
+        }
         const result = await basicallyUpdateComments(id, reply, token, password);
         if (result === 503) {
             log('503.');
@@ -317,6 +322,10 @@ async function basicallyUpdateHole(id, token, password) {
 }
 async function updateHole(id, token, password) {
     while (true) {
+        if (unlocking) {
+            await sleep(init_1.config.recaptchaSleep);
+            continue;
+        }
         const result = await basicallyUpdateHole(id, token, password);
         if (result === 503) {
             log('503.');
@@ -383,6 +392,10 @@ async function basicallyUpdatePage(key, page, token, password) {
 }
 async function updatePage(key, page, token, password) {
     while (true) {
+        if (unlocking) {
+            await sleep(init_1.config.recaptchaSleep);
+            continue;
+        }
         const result = await basicallyUpdatePage(key, page, token, password);
         if (result === 503) {
             log('503.');
@@ -420,7 +433,6 @@ async function updateBatch(batchNumber, token, password) {
         return 401;
     return await updateHoles(idsToRIds(ids, batchNumber), token, password);
 }
-let unlocking = false;
 async function unlock() {
     if (unlocking)
         return;

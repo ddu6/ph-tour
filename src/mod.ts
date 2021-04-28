@@ -4,6 +4,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {spawn} from 'child_process'
 import {config} from './init'
+let unlocking=false
 interface Res{
     body:string
     buffer:Buffer
@@ -244,6 +245,10 @@ async function basicallyUpdateComments(id:number|string,reply:number,token:strin
 }
 async function updateComments(id:number|string,reply:number,token:string,password:string){
     while(true){
+        if(unlocking){
+            await sleep(config.recaptchaSleep)
+            continue
+        }
         const result=await basicallyUpdateComments(id,reply,token,password)
         if(result===503){
             log('503.')
@@ -301,6 +306,10 @@ async function basicallyUpdateHole(id:number|string,token:string,password:string
 }
 async function updateHole(id:number,token:string,password:string){
     while(true){
+        if(unlocking){
+            await sleep(config.recaptchaSleep)
+            continue
+        }
         const result=await basicallyUpdateHole(id,token,password)
         if(result===503){
             log('503.')
@@ -358,6 +367,10 @@ async function basicallyUpdatePage(key:string,page:number|string,token:string,pa
 }
 async function updatePage(key:string,page:number,token:string,password:string){
     while(true){
+        if(unlocking){
+            await sleep(config.recaptchaSleep)
+            continue
+        }
         const result=await basicallyUpdatePage(key,page,token,password)
         if(result===503){
             log('503.')
@@ -390,7 +403,6 @@ async function updateBatch(batchNumber:number,token:string,password:string){
     if(ids===401)return 401
     return await updateHoles(idsToRIds(ids,batchNumber),token,password)
 }
-let unlocking=false
 async function unlock(){
     if(unlocking)return
     unlocking=true
