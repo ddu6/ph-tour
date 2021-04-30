@@ -5,8 +5,8 @@ const https = require("https");
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const child_process_1 = require("child_process");
 const init_1 = require("./init");
+const open = require("open");
 let unlocking = false;
 function getDate() {
     const date = new Date();
@@ -449,7 +449,7 @@ async function unlock() {
     if (unlocking)
         return;
     unlocking = true;
-    const cp = child_process_1.spawn('google-chrome', ['pkuhelper.pku.edu.cn/hole']);
+    const cp = await open('https://pkuhelper.pku.edu.cn/hole');
     await sleep(init_1.config.unlockingSleep);
     cp.kill();
     unlocking = false;

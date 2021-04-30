@@ -20,7 +20,7 @@ export const config={
     timeout:5,
     interval:1,
     autoUnlock:false,
-    unlockingSleep:30
+    unlockingSleep:10
 }
 const path0=path.join(__dirname,'../config.json')
 if(!fs.existsSync(path0))fs.writeFileSync(path0,JSON.stringify(config,null,4))

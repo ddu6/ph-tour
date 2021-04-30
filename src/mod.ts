@@ -2,8 +2,8 @@ import * as https from 'https'
 import * as http from 'http'
 import * as fs from 'fs'
 import * as path from 'path'
-import {spawn} from 'child_process'
 import {config} from './init'
+import * as open from 'open'
 let unlocking=false
 interface Res{
     body:string
@@ -417,7 +417,7 @@ async function updateBatches(start:number,length:number,token:string,password:st
 async function unlock(){
     if(unlocking)return
     unlocking=true
-    const cp=spawn('google-chrome',['pkuhelper.pku.edu.cn/hole'])
+    const cp=await open('https://pkuhelper.pku.edu.cn/hole')
     await sleep(config.unlockingSleep)
     cp.kill()
     unlocking=false
