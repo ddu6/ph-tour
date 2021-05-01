@@ -302,7 +302,7 @@ async function basicallyUpdateHole(id:number|string,token:string,password:string
     const deltaLikes=Number(data1.likenum)-Number(data0.likenum)
     if(
         deltaComments>0
-        ||deltaLikes>0
+        ||deltaLikes!==0
     ){
         log(`h${id} updated by ${deltaComments} comments and ${deltaLikes} likes.`)
     }

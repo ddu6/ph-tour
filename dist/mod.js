@@ -319,7 +319,7 @@ async function basicallyUpdateHole(id, token, password) {
     const deltaComments = reply - Number(data0.reply);
     const deltaLikes = Number(data1.likenum) - Number(data0.likenum);
     if (deltaComments > 0
-        || deltaLikes > 0) {
+        || deltaLikes !== 0) {
         log(`h${id} updated by ${deltaComments} comments and ${deltaLikes} likes.`);
     }
     return await updateComments(id, reply, token, password);
