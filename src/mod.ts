@@ -240,8 +240,9 @@ async function basicallyUpdateComments(id:number|string,reply:number,token:strin
         const {text}=data1[i]
         if(typeof text==='string'&&text.startsWith('[Helper]'))return 423
     }
+    const cid=Math.max(...data1.map(val=>Number(val.cid)))
     const timestamp=Math.max(...data1.map(val=>Number(val.timestamp)))
-    log(`c${id} updated to ${prettyDate(timestamp)}.`)
+    log(`c${id} updated to comment ${cid} in ${prettyDate(timestamp)}.`)
     return 200
 }
 async function updateComments(id:number|string,reply:number,token:string,password:string){
