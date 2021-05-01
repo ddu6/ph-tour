@@ -244,7 +244,8 @@ async function basicallyUpdateComments(id, reply, token, password) {
         if (typeof text === 'string' && text.startsWith('[Helper]'))
             return 423;
     }
-    log(`c${id} updated.`);
+    const timestamp = Math.max(...data1.map(val => Number(val.timestamp)));
+    log(`c${id} updated to ${prettyDate(timestamp)}.`);
     return 200;
 }
 async function updateComments(id, reply, token, password) {
@@ -293,7 +294,7 @@ async function basicallyUpdateHole(id, token, password) {
             return 404;
         if (typeof result1 === 'number')
             return 500;
-        log(`h${id} updated.`);
+        log(`h${id} included.`);
         return await updateComments(id, Number(result1.data.reply), token, password);
     }
     if (typeof result0 === 'number')
@@ -314,9 +315,11 @@ async function basicallyUpdateHole(id, token, password) {
         return 500;
     const data1 = result1.data;
     const reply = Number(data1.reply);
-    if (reply > Number(data0.reply)
-        || Number(data1.likenum) > Number(data0.likenum)) {
-        log(`h${id} updated.`);
+    const deltaComments = reply - Number(data0.reply);
+    const deltaLikes = Number(data1.likenum) - Number(data0.likenum);
+    if (deltaComments > 0
+        || deltaLikes > 0) {
+        log(`h${id} updated by ${deltaComments} comments and ${deltaLikes} likes.`);
     }
     return await updateComments(id, reply, token, password);
 }
@@ -453,6 +456,24 @@ async function unlock() {
     await sleep(init_1.config.unlockingSleep);
     cp.kill();
     unlocking = false;
+}
+function prettyDate(stamp) {
+    const date = new Date(Number(stamp + '000'));
+    const now = new Date();
+    const year = date.getFullYear();
+    const nowYear = now.getFullYear();
+    const md = (date.getMonth() + 1) + '/' +
+        date.getDate();
+    const nowMD = (now.getMonth() + 1) + '/' +
+        now.getDate();
+    const hms = date.getHours() + ':' +
+        date.getMinutes() + ':' +
+        date.getSeconds();
+    if (year !== nowYear)
+        return hms + ' ' + year + '/' + md;
+    if (nowMD !== md)
+        return hms + ' ' + md;
+    return hms;
 }
 async function main() {
     Object.assign(init_1.config, JSON.parse(fs.readFileSync(path.join(__dirname, '../config.json'), { encoding: 'utf8' })));

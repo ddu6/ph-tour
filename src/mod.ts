@@ -240,7 +240,8 @@ async function basicallyUpdateComments(id:number|string,reply:number,token:strin
         const {text}=data1[i]
         if(typeof text==='string'&&text.startsWith('[Helper]'))return 423
     }
-    log(`c${id} updated.`)
+    const timestamp=Math.max(...data1.map(val=>Number(val.timestamp)))
+    log(`c${id} updated to ${prettyDate(timestamp)}.`)
     return 200
 }
 async function updateComments(id:number|string,reply:number,token:string,password:string){
@@ -282,7 +283,7 @@ async function basicallyUpdateHole(id:number|string,token:string,password:string
         if(result1===503)return 503
         if(result1===404)return 404
         if(typeof result1==='number')return 500
-        log(`h${id} updated.`)
+        log(`h${id} included.`)
         return await updateComments(id,Number(result1.data.reply),token,password)
     }
     if(typeof result0==='number')return 500
@@ -296,11 +297,13 @@ async function basicallyUpdateHole(id:number|string,token:string,password:string
     if(typeof result1==='number')return 500
     const data1=result1.data
     const reply=Number(data1.reply)
+    const deltaComments=reply-Number(data0.reply)
+    const deltaLikes=Number(data1.likenum)-Number(data0.likenum)
     if(
-        reply>Number(data0.reply)
-        ||Number(data1.likenum)>Number(data0.likenum)
+        deltaComments>0
+        ||deltaLikes>0
     ){
-        log(`h${id} updated.`)
+        log(`h${id} updated by ${deltaComments} comments and ${deltaLikes} likes.`)
     }
     return await updateComments(id,reply,token,password)
 }
@@ -421,6 +424,22 @@ async function unlock(){
     await sleep(config.unlockingSleep)
     cp.kill()
     unlocking=false
+}
+function prettyDate(stamp:string|number){
+    const date=new Date(Number(stamp+'000'))
+    const now=new Date()
+    const year=date.getFullYear()
+    const nowYear=now.getFullYear()
+    const md=(date.getMonth()+1)+'/'+
+    date.getDate()
+    const nowMD=(now.getMonth()+1)+'/'+
+    now.getDate()
+    const hms=date.getHours()+':'+
+    date.getMinutes()+':'+
+    date.getSeconds()
+    if(year!==nowYear)return hms+' '+year+'/'+md
+    if(nowMD!==md)return hms+' '+md
+    return hms
 }
 export async function main(){
     Object.assign(config,JSON.parse(fs.readFileSync(path.join(__dirname,'../config.json'),{encoding:'utf8'})))
