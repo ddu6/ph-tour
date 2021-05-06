@@ -231,6 +231,7 @@ async function basicallyUpdateComments(id:number|string,reply:number,token:strin
     const length0=data0.length
     if(reply>=0&&length0>=reply)return 200
     const result1=await basicallyGetComments(id,token,password)
+    if(result1===423)return 423
     if(result1===401)return 401
     if(result1===503)return 503
     if(result1===404)return 404

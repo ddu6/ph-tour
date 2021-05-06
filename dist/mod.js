@@ -230,6 +230,8 @@ async function basicallyUpdateComments(id, reply, token, password) {
     if (reply >= 0 && length0 >= reply)
         return 200;
     const result1 = await basicallyGetComments(id, token, password);
+    if (result1 === 423)
+        return 423;
     if (result1 === 401)
         return 401;
     if (result1 === 503)
