@@ -248,7 +248,7 @@ async function basicallyUpdateComments(id, reply, token, password) {
     }
     const cid = Math.max(...data1.map(val => Number(val.cid)));
     const timestamp = Math.max(...data1.map(val => Number(val.timestamp)));
-    log(`c${id} updated to comment ${cid} in ${prettyDate(timestamp)}.`);
+    log(`c${id} updated to comment ${cid} which is in ${prettyDate(timestamp)}.`);
     return 200;
 }
 async function updateComments(id, reply, token, password) {
