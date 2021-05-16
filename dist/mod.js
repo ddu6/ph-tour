@@ -177,7 +177,7 @@ function idsToRIds(data, batchNumber) {
     return array;
 }
 async function basicallyGetComments(id, token, password) {
-    const data = await getResult(`c${id}`, {
+    const data = await getResult(`cs${id}`, {
         update: '',
         token: token,
         password: password
@@ -185,7 +185,7 @@ async function basicallyGetComments(id, token, password) {
     return data;
 }
 async function basicallyGetLocalComments(id, token, password) {
-    const data = await getResult(`local/c${id}`, {
+    const data = await getResult(`local/cs${id}`, {
         token: token,
         password: password
     });
@@ -248,7 +248,7 @@ async function basicallyUpdateComments(id, reply, token, password) {
     }
     const cid = Math.max(...data1.map(val => Number(val.cid)));
     const timestamp = Math.max(...data1.map(val => Number(val.timestamp)));
-    log(`c${id} updated to comment ${cid} which is in ${prettyDate(timestamp)}.`);
+    log(`cs${id} updated to c${cid} which is in ${prettyDate(timestamp)}.`);
     return 200;
 }
 async function updateComments(id, reply, token, password) {

@@ -183,7 +183,7 @@ function idsToRIds(data:number[],batchNumber:number){
     return array
 }
 async function basicallyGetComments(id:number|string,token:string,password:string){
-    const data:{data:CommentData[]}|number=await getResult(`c${id}`,{
+    const data:{data:CommentData[]}|number=await getResult(`cs${id}`,{
         update:'',
         token:token,
         password:password
@@ -191,7 +191,7 @@ async function basicallyGetComments(id:number|string,token:string,password:strin
     return data
 }
 async function basicallyGetLocalComments(id:number|string,token:string,password:string){
-    const data:{data:CommentData[]}|number=await getResult(`local/c${id}`,{
+    const data:{data:CommentData[]}|number=await getResult(`local/cs${id}`,{
         token:token,
         password:password
     })
@@ -243,7 +243,7 @@ async function basicallyUpdateComments(id:number|string,reply:number,token:strin
     }
     const cid=Math.max(...data1.map(val=>Number(val.cid)))
     const timestamp=Math.max(...data1.map(val=>Number(val.timestamp)))
-    log(`c${id} updated to comment ${cid} which is in ${prettyDate(timestamp)}.`)
+    log(`cs${id} updated to c${cid} which is in ${prettyDate(timestamp)}.`)
     return 200
 }
 async function updateComments(id:number|string,reply:number,token:string,password:string){
