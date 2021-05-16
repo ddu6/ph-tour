@@ -147,6 +147,7 @@ async function basicallyGetIds(batchNumber:number,token:string,password:string){
     })
     if(result===503)return 503
     if(result===401)return 401
+    if(result===403)return 403
     if(typeof result==='number')return 500
     return result.data
 }
@@ -164,6 +165,7 @@ async function getIds(batchNumber:number,token:string,password:string){
             continue
         }
         if(result===401)return 401
+        if(result===403)return 403
         return result
     }
 }
@@ -225,6 +227,7 @@ async function basicallyUpdateComments(id:number|string,reply:number,token:strin
     if(reply===0)return 200
     const result0=await basicallyGetLocalComments(id,token,password)
     if(result0===401)return 401
+    if(result0===403)return 403
     if(result0===503)return 503
     if(typeof result0==='number')return 500
     const data0=result0.data
@@ -233,6 +236,7 @@ async function basicallyUpdateComments(id:number|string,reply:number,token:strin
     const result1=await basicallyGetComments(id,token,password)
     if(result1===423)return 423
     if(result1===401)return 401
+    if(result1===403)return 403
     if(result1===503)return 503
     if(result1===404)return 404
     if(typeof result1==='number')return 500
@@ -272,16 +276,19 @@ async function updateComments(id:number|string,reply:number,token:string,passwor
             continue
         }
         if(result===401)return 401
+        if(result===403)return 403
         return 200
     }
 }
 async function basicallyUpdateHole(id:number|string,token:string,password:string){
     const result0=await basicallyGetLocalHole(id,token,password)
     if(result0===401)return 401
+    if(result0===403)return 403
     if(result0===503)return 503
     if(result0===404){
         const result1=await basicallyGetHole(id,token,password)
         if(result1===401)return 401
+        if(result1===403)return 403
         if(result1===503)return 503
         if(result1===404)return 404
         if(typeof result1==='number')return 500
@@ -294,6 +301,7 @@ async function basicallyUpdateHole(id:number|string,token:string,password:string
     if(Number(data0.hidden)===1)return 404
     const result1=await basicallyGetHole(id,token,password)
     if(result1===401)return 401
+    if(result1===403)return 403
     if(result1===503)return 503
     if(result1===404)return 404
     if(typeof result1==='number')return 500
@@ -327,11 +335,12 @@ async function updateHole(id:number,token:string,password:string){
             continue
         }
         if(result===401)return 401
+        if(result===403)return 403
         return 200
     }
 }
 async function updateHoles(ids:number[],token:string,password:string){
-    let promises:Promise<200|401>[]=[]
+    let promises:Promise<200|401|403>[]=[]
     let subIds:number[]=[]
     for(let i=0;i<ids.length;i++){
         const id=ids[i]
@@ -340,6 +349,7 @@ async function updateHoles(ids:number[],token:string,password:string){
         if(promises.length<config.threads&&i<ids.length-1)continue
         const result=await Promise.all(promises)
         if(result.includes(401))return 401
+        if(result.includes(403))return 403
         log(`#${subIds.join(',')} toured.`)
         promises=[]
         subIds=[]
@@ -350,11 +360,12 @@ async function updateHoles(ids:number[],token:string,password:string){
 async function basicallyUpdatePage(key:string,page:number|string,token:string,password:string){
     const result=await basicallyGetPage(key,page,token,password)
     if(result===401)return 401
+    if(result===403)return 403
     if(result===503)return 503
     if(result===404)return 404
     if(typeof result==='number')return 500
     const data=result.data
-    let promises:Promise<200|401>[]=[]
+    let promises:Promise<200|401|403>[]=[]
     let subIds:(number|string)[]=[]
     for(let i=0;i<data.length;i++){
         const {pid,reply}=data[i]
@@ -363,6 +374,7 @@ async function basicallyUpdatePage(key:string,page:number|string,token:string,pa
         if(promises.length<config.threads&&i<data.length-1)continue
         const result=await Promise.all(promises)
         if(result.includes(401))return 401
+        if(result.includes(403))return 403
         log(`#${subIds.join(',')} toured.`)
         promises=[]
         subIds=[]
@@ -388,6 +400,7 @@ async function updatePage(key:string,page:number,token:string,password:string){
             continue
         }
         if(result===401)return 401
+        if(result===403)return 403
         return 200
     }
 }
@@ -396,6 +409,7 @@ async function updatePages(key:string,pages:number[],token:string,password:strin
         const page=pages[i]
         const result=await updatePage(key,page,token,password)
         if(result===401)return 401
+        if(result===403)return 403
         log(`p${page} toured.`)
     }
     return 200
@@ -406,6 +420,7 @@ async function updateBatch(batchNumber:number,token:string,password:string){
     batchNumber=Math.floor(batchNumber)
     const ids=await getIds(batchNumber,token,password)
     if(ids===401)return 401
+    if(ids===403)return 403
     return await updateHoles(idsToRIds(ids,batchNumber),token,password)
 }
 async function updateBatches(start:number,length:number,token:string,password:string){
@@ -416,6 +431,7 @@ async function updateBatches(start:number,length:number,token:string,password:st
         const batchNumber=start+i
         const result=await updateBatch(batchNumber,token,password)
         if(result===401)return 401
+        if(result===403)return 403
     }
     return 200
 }
@@ -449,6 +465,8 @@ export async function main(){
     const result=await updateBatches(start,length,token,password)
     if(result===401){
         log('401.')
+    }else if(result===403){
+        log('403.')
     }else{
         log('Finished.')
     }

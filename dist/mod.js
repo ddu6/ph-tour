@@ -138,6 +138,8 @@ async function basicallyGetIds(batchNumber, token, password) {
         return 503;
     if (result === 401)
         return 401;
+    if (result === 403)
+        return 403;
     if (typeof result === 'number')
         return 500;
     return result.data;
@@ -157,6 +159,8 @@ async function getIds(batchNumber, token, password) {
         }
         if (result === 401)
             return 401;
+        if (result === 403)
+            return 403;
         return result;
     }
 }
@@ -221,6 +225,8 @@ async function basicallyUpdateComments(id, reply, token, password) {
     const result0 = await basicallyGetLocalComments(id, token, password);
     if (result0 === 401)
         return 401;
+    if (result0 === 403)
+        return 403;
     if (result0 === 503)
         return 503;
     if (typeof result0 === 'number')
@@ -234,6 +240,8 @@ async function basicallyUpdateComments(id, reply, token, password) {
         return 423;
     if (result1 === 401)
         return 401;
+    if (result1 === 403)
+        return 403;
     if (result1 === 503)
         return 503;
     if (result1 === 404)
@@ -278,6 +286,8 @@ async function updateComments(id, reply, token, password) {
         }
         if (result === 401)
             return 401;
+        if (result === 403)
+            return 403;
         return 200;
     }
 }
@@ -285,12 +295,16 @@ async function basicallyUpdateHole(id, token, password) {
     const result0 = await basicallyGetLocalHole(id, token, password);
     if (result0 === 401)
         return 401;
+    if (result0 === 403)
+        return 403;
     if (result0 === 503)
         return 503;
     if (result0 === 404) {
         const result1 = await basicallyGetHole(id, token, password);
         if (result1 === 401)
             return 401;
+        if (result1 === 403)
+            return 403;
         if (result1 === 503)
             return 503;
         if (result1 === 404)
@@ -310,6 +324,8 @@ async function basicallyUpdateHole(id, token, password) {
     const result1 = await basicallyGetHole(id, token, password);
     if (result1 === 401)
         return 401;
+    if (result1 === 403)
+        return 403;
     if (result1 === 503)
         return 503;
     if (result1 === 404)
@@ -345,6 +361,8 @@ async function updateHole(id, token, password) {
         }
         if (result === 401)
             return 401;
+        if (result === 403)
+            return 403;
         return 200;
     }
 }
@@ -360,6 +378,8 @@ async function updateHoles(ids, token, password) {
         const result = await Promise.all(promises);
         if (result.includes(401))
             return 401;
+        if (result.includes(403))
+            return 403;
         log(`#${subIds.join(',')} toured.`);
         promises = [];
         subIds = [];
@@ -371,6 +391,8 @@ async function basicallyUpdatePage(key, page, token, password) {
     const result = await basicallyGetPage(key, page, token, password);
     if (result === 401)
         return 401;
+    if (result === 403)
+        return 403;
     if (result === 503)
         return 503;
     if (result === 404)
@@ -389,6 +411,8 @@ async function basicallyUpdatePage(key, page, token, password) {
         const result = await Promise.all(promises);
         if (result.includes(401))
             return 401;
+        if (result.includes(403))
+            return 403;
         log(`#${subIds.join(',')} toured.`);
         promises = [];
         subIds = [];
@@ -415,6 +439,8 @@ async function updatePage(key, page, token, password) {
         }
         if (result === 401)
             return 401;
+        if (result === 403)
+            return 403;
         return 200;
     }
 }
@@ -424,6 +450,8 @@ async function updatePages(key, pages, token, password) {
         const result = await updatePage(key, page, token, password);
         if (result === 401)
             return 401;
+        if (result === 403)
+            return 403;
         log(`p${page} toured.`);
     }
     return 200;
@@ -437,6 +465,8 @@ async function updateBatch(batchNumber, token, password) {
     const ids = await getIds(batchNumber, token, password);
     if (ids === 401)
         return 401;
+    if (ids === 403)
+        return 403;
     return await updateHoles(idsToRIds(ids, batchNumber), token, password);
 }
 async function updateBatches(start, length, token, password) {
@@ -448,6 +478,8 @@ async function updateBatches(start, length, token, password) {
         const result = await updateBatch(batchNumber, token, password);
         if (result === 401)
             return 401;
+        if (result === 403)
+            return 403;
     }
     return 200;
 }
@@ -484,6 +516,9 @@ async function main() {
     const result = await updateBatches(start, length, token, password);
     if (result === 401) {
         log('401.');
+    }
+    else if (result === 403) {
+        log('403.');
     }
     else {
         log('Finished.');
