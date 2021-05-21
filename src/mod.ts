@@ -4,6 +4,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import {config} from './init'
 import * as open from 'open'
+Object.assign(config,JSON.parse(fs.readFileSync(path.join(__dirname,'../config.json'),{encoding:'utf8'})))
 let unlocking=false
 interface Res{
     body:string
@@ -460,7 +461,6 @@ function prettyDate(stamp:string|number){
     return hms
 }
 export async function main(){
-    Object.assign(config,JSON.parse(fs.readFileSync(path.join(__dirname,'../config.json'),{encoding:'utf8'})))
     const {token,password,batches:{start,length}}=config
     const result=await updateBatches(start,length,token,password)
     if(result===401){

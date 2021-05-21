@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const init_1 = require("./init");
 const open = require("open");
+Object.assign(init_1.config, JSON.parse(fs.readFileSync(path.join(__dirname, '../config.json'), { encoding: 'utf8' })));
 let unlocking = false;
 function getDate() {
     const date = new Date();
@@ -511,7 +512,6 @@ function prettyDate(stamp) {
     return hms;
 }
 async function main() {
-    Object.assign(init_1.config, JSON.parse(fs.readFileSync(path.join(__dirname, '../config.json'), { encoding: 'utf8' })));
     const { token, password, batches: { start, length } } = init_1.config;
     const result = await updateBatches(start, length, token, password);
     if (result === 401) {
