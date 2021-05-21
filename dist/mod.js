@@ -40,29 +40,42 @@ async function sleep(time) {
         setTimeout(resolve, time * 1000);
     });
 }
-async function basicallyGet(url, params = {}, cookie = '', referer = '') {
+async function basicallyGet(url, params = {}, form = {}, cookie = '', referer = '', noUserAgent = false) {
     let paramsStr = new URL(url).searchParams.toString();
-    if (paramsStr.length > 0)
+    if (paramsStr.length > 0) {
         paramsStr += '&';
+    }
     paramsStr += new URLSearchParams(params).toString();
-    if (paramsStr.length > 0)
+    if (paramsStr.length > 0) {
         paramsStr = '?' + paramsStr;
+    }
     url = new URL(paramsStr, url).href;
-    const headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36'
-    };
-    if (cookie.length > 0)
+    const formStr = new URLSearchParams(form).toString();
+    const headers = {};
+    if (cookie.length > 0) {
         headers.Cookie = cookie;
-    if (referer.length > 0)
+    }
+    if (referer.length > 0) {
         headers.Referer = referer;
+    }
+    if (!noUserAgent) {
+        headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36';
+    }
+    if (formStr.length > 0) {
+        Object.assign(headers, {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+        });
+    }
+    const options = {
+        method: formStr.length > 0 ? 'POST' : 'GET',
+        headers: headers
+    };
     const result = await new Promise((resolve) => {
         setTimeout(() => {
             resolve(500);
         }, init_1.config.timeout * 1000);
         const httpsOrHTTP = url.startsWith('https://') ? https : http;
-        httpsOrHTTP.get(url, {
-            headers: headers
-        }, async (res) => {
+        const req = httpsOrHTTP.request(url, options, async (res) => {
             const { statusCode } = res;
             if (statusCode === undefined) {
                 resolve(500);
@@ -108,6 +121,10 @@ async function basicallyGet(url, params = {}, cookie = '', referer = '') {
             semilog(err);
             resolve(500);
         });
+        if (formStr.length > 0) {
+            req.write(formStr);
+        }
+        req.end();
     });
     return result;
 }
