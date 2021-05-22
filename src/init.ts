@@ -12,15 +12,15 @@ export const config={
         start:-1,
         length:1
     },
-    base:"https://ddu6.xyz/services/ph-get/",
+    autoUnlock:false,
     threads:5,
     congestionSleep:0.5,
+    stepSleep:1,
     errSleep:1,
     recaptchaSleep:10,
+    unlockingSleep:10,
     timeout:5,
-    interval:1,
-    autoUnlock:false,
-    unlockingSleep:10
+    base:"https://ddu6.xyz/services/ph-get/",
 }
 const path0=path.join(__dirname,'../config.json')
 if(!fs.existsSync(path0))fs.writeFileSync(path0,JSON.stringify(config,null,4))

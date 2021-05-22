@@ -401,7 +401,7 @@ async function updateHoles(ids, token, password) {
         out(`#${subIds.join(',')} toured.`);
         promises = [];
         subIds = [];
-        await sleep(init_1.config.interval);
+        await sleep(init_1.config.stepSleep);
     }
     return 200;
 }
@@ -434,7 +434,7 @@ async function basicallyUpdatePage(key, page, token, password) {
         out(`#${subIds.join(',')} toured.`);
         promises = [];
         subIds = [];
-        await sleep(init_1.config.interval);
+        await sleep(init_1.config.stepSleep);
     }
     return 200;
 }

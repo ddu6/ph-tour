@@ -375,7 +375,7 @@ async function updateHoles(ids:number[],token:string,password:string){
         out(`#${subIds.join(',')} toured.`)
         promises=[]
         subIds=[]
-        await sleep(config.interval)
+        await sleep(config.stepSleep)
     }
     return 200
 }
@@ -400,7 +400,7 @@ async function basicallyUpdatePage(key:string,page:number|string,token:string,pa
         out(`#${subIds.join(',')} toured.`)
         promises=[]
         subIds=[]
-        await sleep(config.interval)
+        await sleep(config.stepSleep)
     }
     return 200
 }
