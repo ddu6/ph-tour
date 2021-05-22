@@ -37,7 +37,7 @@ function getDate(){
     const date=new Date()
     return [date.getMonth()+1,date.getDate()].map(val=>val.toString().padStart(2,'0')).join('-')+' '+[date.getHours(),date.getMinutes(),date.getSeconds()].map(val=>val.toString().padStart(2,'0')).join(':')+':'+date.getMilliseconds().toString().padStart(3,'0')
 }
-function semilog(msg:string|Error){
+function log(msg:string|Error){
     let string=getDate()+'  '
     if(typeof msg!=='string'){
         const {stack}=msg
@@ -50,11 +50,11 @@ function semilog(msg:string|Error){
         string+=msg
     }
     string=string.replace(/\n */g,'\n                    ')
-    fs.appendFileSync(path.join(__dirname,'../info/semilog.txt'),string+'\n\n')
+    fs.appendFileSync(path.join(__dirname,'../info/log.txt'),string+'\n\n')
     return string
 }
-function log(msg:string|Error){
-    const string=semilog(msg)
+function out(msg:string|Error){
+    const string=log(msg)
     console.log(string+'\n')
 }
 async function sleep(time:number){
@@ -134,11 +134,11 @@ async function basicallyGet(url:string,params:Record<string,string>={},form:Reco
                 })
             })
             res.on('error',err=>{
-                semilog(err)
+                log(err)
                 resolve(500)
             })
         }).on('error',err=>{
-            semilog(err)
+            log(err)
             resolve(500)
         })
         if(formStr.length>0){
@@ -158,7 +158,7 @@ async function getResult(path:string,params:Record<string,string>={}){
         if(status===200)return {data:data}
         if(typeof status==='number')return status
     }catch(err){
-        semilog(err)
+        log(err)
     }
     return 500
 }
@@ -177,12 +177,12 @@ async function getIds(batchNumber:number,token:string,password:string){
     while(true){
         const result=await basicallyGetIds(batchNumber,token,password)
         if(result===503){
-            log('503.')
+            out('503.')
             await sleep(config.congestionSleep)
             continue
         }
         if(result===500){
-            log('500.')
+            out('500.')
             await sleep(config.errSleep)
             continue
         }
@@ -269,7 +269,7 @@ async function basicallyUpdateComments(id:number|string,reply:number,token:strin
     }
     const cid=Math.max(...data1.map(val=>Number(val.cid)))
     const timestamp=Math.max(...data1.map(val=>Number(val.timestamp)))
-    log(`cs${id} updated to c${cid} which is in ${prettyDate(timestamp)}.`)
+    out(`cs${id} updated to c${cid} which is in ${prettyDate(timestamp)}.`)
     return 200
 }
 async function updateComments(id:number|string,reply:number,token:string,password:string){
@@ -280,17 +280,17 @@ async function updateComments(id:number|string,reply:number,token:string,passwor
         }
         const result=await basicallyUpdateComments(id,reply,token,password)
         if(result===503){
-            log('503.')
+            out('503.')
             await sleep(config.congestionSleep)
             continue
         }
         if(result===500){
-            log('500.')
+            out('500.')
             await sleep(config.errSleep)
             continue
         }
         if(result===423){
-            log('423.')
+            out('423.')
             if(config.autoUnlock){
                 await unlock()
             }
@@ -314,7 +314,7 @@ async function basicallyUpdateHole(id:number|string,token:string,password:string
         if(result1===503)return 503
         if(result1===404)return 404
         if(typeof result1==='number')return 500
-        log(`h${id} included.`)
+        out(`h${id} included.`)
         return await updateComments(id,Number(result1.data.reply),token,password)
     }
     if(typeof result0==='number')return 500
@@ -335,7 +335,7 @@ async function basicallyUpdateHole(id:number|string,token:string,password:string
         deltaComments>0
         ||deltaLikes!==0
     ){
-        log(`h${id} updated by ${deltaComments} comments and ${deltaLikes} likes.`)
+        out(`h${id} updated by ${deltaComments} comments and ${deltaLikes} likes.`)
     }
     return await updateComments(id,reply,token,password)
 }
@@ -347,12 +347,12 @@ async function updateHole(id:number,token:string,password:string){
         }
         const result=await basicallyUpdateHole(id,token,password)
         if(result===503){
-            log('503.')
+            out('503.')
             await sleep(config.congestionSleep)
             continue
         }
         if(result===500){
-            log('500.')
+            out('500.')
             await sleep(config.errSleep)
             continue
         }
@@ -372,7 +372,7 @@ async function updateHoles(ids:number[],token:string,password:string){
         const result=await Promise.all(promises)
         if(result.includes(401))return 401
         if(result.includes(403))return 403
-        log(`#${subIds.join(',')} toured.`)
+        out(`#${subIds.join(',')} toured.`)
         promises=[]
         subIds=[]
         await sleep(config.interval)
@@ -397,7 +397,7 @@ async function basicallyUpdatePage(key:string,page:number|string,token:string,pa
         const result=await Promise.all(promises)
         if(result.includes(401))return 401
         if(result.includes(403))return 403
-        log(`#${subIds.join(',')} toured.`)
+        out(`#${subIds.join(',')} toured.`)
         promises=[]
         subIds=[]
         await sleep(config.interval)
@@ -412,12 +412,12 @@ async function updatePage(key:string,page:number,token:string,password:string){
         }
         const result=await basicallyUpdatePage(key,page,token,password)
         if(result===503){
-            log('503.')
+            out('503.')
             await sleep(config.congestionSleep)
             continue
         }
         if(result===500){
-            log('500.')
+            out('500.')
             await sleep(config.errSleep)
             continue
         }
@@ -432,7 +432,7 @@ async function updatePages(key:string,pages:number[],token:string,password:strin
         const result=await updatePage(key,page,token,password)
         if(result===401)return 401
         if(result===403)return 403
-        log(`p${page} toured.`)
+        out(`p${page} toured.`)
     }
     return 200
 }
@@ -485,10 +485,10 @@ export async function main(){
     const {token,password,batches:{start,length}}=config
     const result=await updateBatches(start,length,token,password)
     if(result===401){
-        log('401.')
+        out('401.')
     }else if(result===403){
-        log('403.')
+        out('403.')
     }else{
-        log('Finished.')
+        out('Finished.')
     }
 }
