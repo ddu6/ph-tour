@@ -515,7 +515,7 @@ async function unlock() {
                 }] } });
     const page = await context.newPage();
     try {
-        await page.goto('https://pkuhelper.pku.edu.cn/hole', { timeout: init_1.config.unlockingSleep });
+        await page.goto('https://pkuhelper.pku.edu.cn/hole', { timeout: init_1.config.unlockingSleep * 1000 });
     }
     catch (err) {
         log(err);
