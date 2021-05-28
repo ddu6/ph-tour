@@ -12,7 +12,7 @@ export const config={
         start:-1,
         length:1
     },
-    autoUnlock:false,
+    autoUnlock:true,
     threads:5,
     congestionSleep:0.5,
     stepSleep:1,
