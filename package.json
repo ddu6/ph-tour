@@ -4,7 +4,7 @@
     "start": "node dist/main.js"
   },
   "devDependencies": {
-    "@types/node": "^14.14.31"
+    "@types/node": "^15.12.2"
   },
   "dependencies": {
     "playwright-chromium": "^1.12.1"
