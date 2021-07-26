@@ -1,184 +1,77 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.main = void 0;
-const https = require("https");
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
 const init_1 = require("./init");
 const playwright_chromium_1 = require("playwright-chromium");
-Object.assign(init_1.config, JSON.parse(fs.readFileSync(path.join(__dirname, '../config.json'), { encoding: 'utf8' })));
+const cli_tools_1 = require("@ddu6/cli-tools");
+const clit = new cli_tools_1.CLIT(__dirname, init_1.config);
 let unlocking = false;
-function getDate() {
-    const date = new Date();
-    return [date.getMonth() + 1, date.getDate()].map(val => val.toString().padStart(2, '0')).join('-') + ' ' + [date.getHours(), date.getMinutes(), date.getSeconds()].map(val => val.toString().padStart(2, '0')).join(':') + ':' + date.getMilliseconds().toString().padStart(3, '0');
-}
-function log(msg) {
-    let string = getDate() + '  ';
-    if (typeof msg !== 'string') {
-        const { stack } = msg;
-        if (stack !== undefined) {
-            string += stack;
-        }
-        else {
-            string += msg.message;
-        }
-    }
-    else {
-        string += msg;
-    }
-    string = string.replace(/\n */g, '\n                    ');
-    fs.appendFileSync(path.join(__dirname, '../info/log.txt'), string + '\n\n');
-    return string;
-}
-function out(msg) {
-    const string = log(msg);
-    console.log(string + '\n');
-}
 async function sleep(time) {
     await new Promise(resolve => {
         setTimeout(resolve, time * 1000);
     });
 }
-async function basicallyGet(url, params = {}, form = {}, cookie = '', referer = '', noUserAgent = false) {
-    let paramsStr = new URL(url).searchParams.toString();
-    if (paramsStr.length > 0) {
-        paramsStr += '&';
-    }
-    paramsStr += new URLSearchParams(params).toString();
-    if (paramsStr.length > 0) {
-        paramsStr = '?' + paramsStr;
-    }
-    url = new URL(paramsStr, url).href;
-    const formStr = new URLSearchParams(form).toString();
-    const headers = {};
-    if (cookie.length > 0) {
-        headers.Cookie = cookie;
-    }
-    if (referer.length > 0) {
-        headers.Referer = referer;
-    }
-    if (!noUserAgent) {
-        headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36';
-    }
-    if (formStr.length > 0) {
-        Object.assign(headers, {
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-        });
-    }
-    const options = {
-        method: formStr.length > 0 ? 'POST' : 'GET',
-        headers: headers
-    };
-    const result = await new Promise((resolve) => {
-        setTimeout(() => {
-            resolve(500);
-        }, init_1.config.timeout * 1000);
-        const httpsOrHTTP = url.startsWith('https://') ? https : http;
-        const req = httpsOrHTTP.request(url, options, async (res) => {
-            const { statusCode } = res;
-            if (statusCode === undefined) {
-                resolve(500);
-                return;
-            }
-            if (statusCode >= 400) {
-                resolve(statusCode);
-                return;
-            }
-            let cookie;
-            const cookie0 = res.headers["set-cookie"];
-            if (cookie0 === undefined) {
-                cookie = '';
-            }
-            else {
-                cookie = cookie0.map(val => val.split(';')[0]).join('; ');
-            }
-            let body = '';
-            const buffers = [];
-            res.on('data', chunk => {
-                if (typeof chunk === 'string') {
-                    body += chunk;
-                }
-                else if (chunk instanceof Buffer) {
-                    body += chunk;
-                    buffers.push(chunk);
-                }
-            });
-            res.on('end', () => {
-                resolve({
-                    body: body,
-                    buffer: Buffer.concat(buffers),
-                    cookie: cookie,
-                    headers: res.headers,
-                    status: statusCode
-                });
-            });
-            res.on('error', err => {
-                log(err);
-                resolve(500);
-            });
-        }).on('error', err => {
-            log(err);
-            resolve(500);
-        });
-        if (formStr.length > 0) {
-            req.write(formStr);
-        }
-        req.end();
-    });
-    return result;
-}
-async function getResult(path, params = {}) {
-    const result = await basicallyGet(`${init_1.config.base}${path}`, params);
-    if (typeof result === 'number')
+async function get(path, params = {}) {
+    const result = await clit.request(`${init_1.config.base}${path}`, params);
+    if (typeof result === 'number') {
         return result;
+    }
     const { status, body } = result;
-    if (status !== 200)
+    if (status !== 200) {
         return status;
+    }
     try {
         const { status, data } = JSON.parse(body);
-        if (status === 200)
+        if (status === 200) {
             return { data: data };
-        if (typeof status === 'number')
+        }
+        if (typeof status === 'number') {
             return status;
+        }
     }
     catch (err) {
-        log(err);
+        clit.log(err);
     }
     return 500;
 }
 async function basicallyGetIds(batchNumber, token, password) {
-    const result = await getResult(`local/ids${batchNumber}`, {
+    const result = await get(`local/ids${batchNumber}`, {
         token: token,
         password: password
     });
-    if (result === 503)
+    if (result === 503) {
         return 503;
-    if (result === 401)
+    }
+    if (result === 401) {
         return 401;
-    if (result === 403)
+    }
+    if (result === 403) {
         return 403;
-    if (typeof result === 'number')
+    }
+    if (typeof result === 'number') {
         return 500;
+    }
     return result.data;
 }
 async function getIds(batchNumber, token, password) {
     while (true) {
         const result = await basicallyGetIds(batchNumber, token, password);
         if (result === 503) {
-            out('503.');
+            clit.out('503.');
             await sleep(init_1.config.congestionSleep);
             continue;
         }
         if (result === 500) {
-            out('500.');
+            clit.out('500.');
             await sleep(init_1.config.errSleep);
             continue;
         }
-        if (result === 401)
+        if (result === 401) {
             return 401;
-        if (result === 403)
+        }
+        if (result === 403) {
             return 403;
+        }
         return result;
     }
 }
@@ -192,14 +85,15 @@ function idsToRIds(data, batchNumber) {
     }
     const array = [];
     for (let i = 0; i < batchSize; i++) {
-        if (ids[i])
+        if (ids[i]) {
             continue;
+        }
         array.push(batchNumber + i);
     }
     return array;
 }
 async function basicallyGetComments(id, token, password) {
-    const data = await getResult(`cs${id}`, {
+    const data = await get(`cs${id}`, {
         update: '',
         token: token,
         password: password
@@ -207,14 +101,14 @@ async function basicallyGetComments(id, token, password) {
     return data;
 }
 async function basicallyGetLocalComments(id, token, password) {
-    const data = await getResult(`local/cs${id}`, {
+    const data = await get(`local/cs${id}`, {
         token: token,
         password: password
     });
     return data;
 }
 async function basicallyGetHole(id, token, password) {
-    const data = await getResult(`h${id}`, {
+    const data = await get(`h${id}`, {
         update: '',
         token: token,
         password: password
@@ -222,14 +116,14 @@ async function basicallyGetHole(id, token, password) {
     return data;
 }
 async function basicallyGetLocalHole(id, token, password) {
-    const data = await getResult(`local/h${id}`, {
+    const data = await get(`local/h${id}`, {
         token: token,
         password: password
     });
     return data;
 }
 async function basicallyGetPage(key, page, token, password) {
-    const data = await getResult(`p${page}`, {
+    const data = await get(`p${page}`, {
         update: '',
         key: key,
         token: token,
@@ -238,43 +132,56 @@ async function basicallyGetPage(key, page, token, password) {
     return data;
 }
 async function basicallyUpdateComments(id, reply, token, password) {
-    if (reply === 0)
+    if (reply === 0) {
         return 200;
+    }
     const result0 = await basicallyGetLocalComments(id, token, password);
-    if (result0 === 401)
+    if (result0 === 401) {
         return 401;
-    if (result0 === 403)
+    }
+    if (result0 === 403) {
         return 403;
-    if (result0 === 503)
+    }
+    if (result0 === 503) {
         return 503;
-    if (typeof result0 === 'number')
+    }
+    if (typeof result0 === 'number') {
         return 500;
+    }
     const data0 = result0.data;
     const length0 = data0.length;
-    if (reply >= 0 && length0 >= reply)
+    if (reply >= 0 && length0 >= reply) {
         return 200;
+    }
     const result1 = await basicallyGetComments(id, token, password);
-    if (result1 === 423)
+    if (result1 === 423) {
         return 423;
-    if (result1 === 401)
+    }
+    if (result1 === 401) {
         return 401;
-    if (result1 === 403)
+    }
+    if (result1 === 403) {
         return 403;
-    if (result1 === 503)
+    }
+    if (result1 === 503) {
         return 503;
-    if (result1 === 404)
+    }
+    if (result1 === 404) {
         return 404;
-    if (typeof result1 === 'number')
+    }
+    if (typeof result1 === 'number') {
         return 500;
+    }
     const data1 = result1.data;
     for (let i = 0; i < data1.length; i++) {
         const { text } = data1[i];
-        if (typeof text === 'string' && text.startsWith('[Helper]'))
+        if (typeof text === 'string' && text.startsWith('[Helper]')) {
             return 423;
+        }
     }
     const cid = Math.max(...data1.map(val => Number(val.cid)));
     const timestamp = Math.max(...data1.map(val => Number(val.timestamp)));
-    out(`cs${id} updated to c${cid} which is in ${prettyDate(timestamp)}.`);
+    clit.out(`cs${id} updated to c${cid} which is in ${prettyDate(timestamp)}.`);
     return 200;
 }
 async function updateComments(id, reply, token, password) {
@@ -285,78 +192,96 @@ async function updateComments(id, reply, token, password) {
         }
         const result = await basicallyUpdateComments(id, reply, token, password);
         if (result === 503) {
-            out('503.');
+            clit.out('503.');
             await sleep(init_1.config.congestionSleep);
             continue;
         }
         if (result === 500) {
-            out('500.');
+            clit.out('500.');
             await sleep(init_1.config.errSleep);
             continue;
         }
         if (result === 423) {
-            out('423.');
+            clit.out('423.');
             if (init_1.config.autoUnlock) {
                 await unlock();
             }
             await sleep(init_1.config.recaptchaSleep);
             continue;
         }
-        if (result === 401)
+        if (result === 401) {
             return 401;
-        if (result === 403)
+        }
+        if (result === 403) {
             return 403;
+        }
         return 200;
     }
 }
 async function basicallyUpdateHole(id, token, password) {
     const result0 = await basicallyGetLocalHole(id, token, password);
-    if (result0 === 401)
+    if (result0 === 401) {
         return 401;
-    if (result0 === 403)
+    }
+    if (result0 === 403) {
         return 403;
-    if (result0 === 503)
+    }
+    if (result0 === 503) {
         return 503;
+    }
     if (result0 === 404) {
         const result1 = await basicallyGetHole(id, token, password);
-        if (result1 === 401)
+        if (result1 === 401) {
             return 401;
-        if (result1 === 403)
+        }
+        if (result1 === 403) {
             return 403;
-        if (result1 === 503)
+        }
+        if (result1 === 503) {
             return 503;
-        if (result1 === 404)
+        }
+        if (result1 === 404) {
             return 404;
-        if (typeof result1 === 'number')
+        }
+        if (typeof result1 === 'number') {
             return 500;
-        out(`h${id} included.`);
+        }
+        clit.out(`h${id} included.`);
         return await updateComments(id, Number(result1.data.reply), token, password);
     }
-    if (typeof result0 === 'number')
+    if (typeof result0 === 'number') {
         return 500;
+    }
     const data0 = result0.data;
-    if (Number(data0.timestamp) === 0)
+    if (Number(data0.timestamp) === 0) {
         return 404;
-    if (Number(data0.hidden) === 1)
+    }
+    if (Number(data0.hidden) === 1) {
         return 404;
+    }
     const result1 = await basicallyGetHole(id, token, password);
-    if (result1 === 401)
+    if (result1 === 401) {
         return 401;
-    if (result1 === 403)
+    }
+    if (result1 === 403) {
         return 403;
-    if (result1 === 503)
+    }
+    if (result1 === 503) {
         return 503;
-    if (result1 === 404)
+    }
+    if (result1 === 404) {
         return 404;
-    if (typeof result1 === 'number')
+    }
+    if (typeof result1 === 'number') {
         return 500;
+    }
     const data1 = result1.data;
     const reply = Number(data1.reply);
     const deltaComments = reply - Number(data0.reply);
     const deltaLikes = Number(data1.likenum) - Number(data0.likenum);
     if (deltaComments > 0
         || deltaLikes !== 0) {
-        out(`h${id} updated by ${deltaComments} comments and ${deltaLikes} likes.`);
+        clit.out(`h${id} updated by ${deltaComments} comments and ${deltaLikes} likes.`);
     }
     return await updateComments(id, reply, token, password);
 }
@@ -368,19 +293,21 @@ async function updateHole(id, token, password) {
         }
         const result = await basicallyUpdateHole(id, token, password);
         if (result === 503) {
-            out('503.');
+            clit.out('503.');
             await sleep(init_1.config.congestionSleep);
             continue;
         }
         if (result === 500) {
-            out('500.');
+            clit.out('500.');
             await sleep(init_1.config.errSleep);
             continue;
         }
-        if (result === 401)
+        if (result === 401) {
             return 401;
-        if (result === 403)
+        }
+        if (result === 403) {
             return 403;
+        }
         return 200;
     }
 }
@@ -391,14 +318,17 @@ async function updateHoles(ids, token, password) {
         const id = ids[i];
         promises.push(updateHole(id, token, password));
         subIds.push(id);
-        if (promises.length < init_1.config.threads && i < ids.length - 1)
+        if (promises.length < init_1.config.threads && i < ids.length - 1) {
             continue;
+        }
         const result = await Promise.all(promises);
-        if (result.includes(401))
+        if (result.includes(401)) {
             return 401;
-        if (result.includes(403))
+        }
+        if (result.includes(403)) {
             return 403;
-        out(`#${subIds.join(',')} toured.`);
+        }
+        clit.out(`#${subIds.join(',')} toured.`);
         promises = [];
         subIds = [];
         await sleep(init_1.config.stepSleep);
@@ -407,16 +337,21 @@ async function updateHoles(ids, token, password) {
 }
 async function basicallyUpdatePage(key, page, token, password) {
     const result = await basicallyGetPage(key, page, token, password);
-    if (result === 401)
+    if (result === 401) {
         return 401;
-    if (result === 403)
+    }
+    if (result === 403) {
         return 403;
-    if (result === 503)
+    }
+    if (result === 503) {
         return 503;
-    if (result === 404)
+    }
+    if (result === 404) {
         return 404;
-    if (typeof result === 'number')
+    }
+    if (typeof result === 'number') {
         return 500;
+    }
     const data = result.data;
     let promises = [];
     let subIds = [];
@@ -424,14 +359,17 @@ async function basicallyUpdatePage(key, page, token, password) {
         const { pid, reply } = data[i];
         promises.push(updateComments(pid, Number(reply), token, password));
         subIds.push(pid);
-        if (promises.length < init_1.config.threads && i < data.length - 1)
+        if (promises.length < init_1.config.threads && i < data.length - 1) {
             continue;
+        }
         const result = await Promise.all(promises);
-        if (result.includes(401))
+        if (result.includes(401)) {
             return 401;
-        if (result.includes(403))
+        }
+        if (result.includes(403)) {
             return 403;
-        out(`#${subIds.join(',')} toured.`);
+        }
+        clit.out(`#${subIds.join(',')} toured.`);
         promises = [];
         subIds = [];
         await sleep(init_1.config.stepSleep);
@@ -446,19 +384,21 @@ async function updatePage(key, page, token, password) {
         }
         const result = await basicallyUpdatePage(key, page, token, password);
         if (result === 503) {
-            out('503.');
+            clit.out('503.');
             await sleep(init_1.config.congestionSleep);
             continue;
         }
         if (result === 500) {
-            out('500.');
+            clit.out('500.');
             await sleep(init_1.config.errSleep);
             continue;
         }
-        if (result === 401)
+        if (result === 401) {
             return 401;
-        if (result === 403)
+        }
+        if (result === 403) {
             return 403;
+        }
         return 200;
     }
 }
@@ -466,25 +406,31 @@ async function updatePages(key, pages, token, password) {
     for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
         const result = await updatePage(key, page, token, password);
-        if (result === 401)
+        if (result === 401) {
             return 401;
-        if (result === 403)
+        }
+        if (result === 403) {
             return 403;
-        out(`p${page} toured.`);
+        }
+        clit.out(`p${page} toured.`);
     }
     return 200;
 }
 async function updateBatch(batchNumber, token, password) {
-    if (batchNumber === -1)
+    if (batchNumber === -1) {
         return await updatePages('', Array.from({ length: 100 }, (v, i) => i + 1), token, password);
-    if (batchNumber % 1 === 0)
+    }
+    if (batchNumber % 1 === 0) {
         return await updateHoles(idsToRIds([], batchNumber), token, password);
+    }
     batchNumber = Math.floor(batchNumber);
     const ids = await getIds(batchNumber, token, password);
-    if (ids === 401)
+    if (ids === 401) {
         return 401;
-    if (ids === 403)
+    }
+    if (ids === 403) {
         return 403;
+    }
     return await updateHoles(idsToRIds(ids, batchNumber), token, password);
 }
 async function updateBatches(start, length, token, password) {
@@ -494,16 +440,19 @@ async function updateBatches(start, length, token, password) {
     for (let i = 0; i < length; i++) {
         const batchNumber = start + i;
         const result = await updateBatch(batchNumber, token, password);
-        if (result === 401)
+        if (result === 401) {
             return 401;
-        if (result === 403)
+        }
+        if (result === 403) {
             return 403;
+        }
     }
     return 200;
 }
 async function unlock() {
-    if (unlocking)
+    if (unlocking) {
         return;
+    }
     unlocking = true;
     const browser = await playwright_chromium_1.chromium.launch();
     const context = await browser.newContext({ storageState: { origins: [{
@@ -518,7 +467,7 @@ async function unlock() {
         await page.goto('https://pkuhelper.pku.edu.cn/hole', { timeout: init_1.config.unlockingSleep * 1000 });
     }
     catch (err) {
-        log(err);
+        clit.log(err);
     }
     await sleep(init_1.config.unlockingSleep);
     await browser.close();
@@ -536,23 +485,25 @@ function prettyDate(stamp) {
     const hms = date.getHours() + ':' +
         date.getMinutes() + ':' +
         date.getSeconds();
-    if (year !== nowYear)
+    if (year !== nowYear) {
         return hms + ' ' + year + '/' + md;
-    if (nowMD !== md)
+    }
+    if (nowMD !== md) {
         return hms + ' ' + md;
+    }
     return hms;
 }
 async function main() {
     const { token, password, batches: { start, length } } = init_1.config;
     const result = await updateBatches(start, length, token, password);
     if (result === 401) {
-        out('401.');
+        clit.out('401.');
     }
     else if (result === 403) {
-        out('403.');
+        clit.out('403.');
     }
     else {
-        out('Finished.');
+        clit.out('Finished.');
     }
 }
 exports.main = main;
