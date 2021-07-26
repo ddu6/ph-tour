@@ -9,9 +9,6 @@ git clone https://github.com/ddu6/ph-tour.git
 cd ph-tour
 ```
 ```
-npm install
-```
-```
 npm run init
 ```
 Fill in `config.json`.
