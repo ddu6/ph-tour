@@ -346,7 +346,7 @@ async function updateHoles(ids:number[],token:string,password:string){
         if(result.includes(403)){
             return 403
         }
-        clit.out(`#${subIds.join(',')} toured.`)
+        clit.out(`#${subIds.join(',')} checked.`)
         promises=[]
         subIds=[]
         await sleep(config.stepSleep)
@@ -387,7 +387,7 @@ async function basicallyUpdatePage(key:string,page:number|string,token:string,pa
         if(result.includes(403)){
             return 403
         }
-        clit.out(`#${subIds.join(',')} toured.`)
+        clit.out(`#${subIds.join(',')} checked.`)
         promises=[]
         subIds=[]
         await sleep(config.stepSleep)
@@ -430,7 +430,7 @@ async function updatePages(key:string,pages:number[],token:string,password:strin
         if(result===403){
             return 403
         }
-        clit.out(`p${page} toured.`)
+        clit.out(`p${page} checked.`)
     }
     return 200
 }
