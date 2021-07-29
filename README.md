@@ -4,10 +4,10 @@
 
 ## Install
 ```
-git clone https://github.com/pkuh6/ph-tour.git
+git clone https://github.com/pkuh6/ph-backup.git
 ```
 ```
-cd ph-tour
+cd ph-backup
 ```
 ```
 npm i
