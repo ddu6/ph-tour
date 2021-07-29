@@ -1,4 +1,4 @@
-# PP Tour
+# PH Tour
 - Require [git](https://git-scm.com).
 - Require [nodejs](https://nodejs.org).
 
