@@ -6,13 +6,13 @@ import * as path from 'path'
     if(!fs.existsSync(val))fs.mkdirSync(val)
 })
 export const config={
+    domain:"example.com",
     token:"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     password:"xxxxxxxx",
     batches:{
         start:-1,
         length:1
     },
-    domain:"example.com",
     autoUnlock:true,
     threads:5,
     congestionSleep:0.5,
