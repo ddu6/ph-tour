@@ -24,7 +24,7 @@ exports.config = {
     recaptchaSleep: 10,
     unlockingSleep: 10,
     requestTimeout: 5,
-    base: "https://ddu6.xyz/services/ph-get/",
+    domain: "example.com",
 };
 const path0 = path.join(__dirname, '../config.json');
 if (!fs.existsSync(path0)) {
