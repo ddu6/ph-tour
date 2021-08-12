@@ -12,6 +12,7 @@ export const config={
         start:-1,
         length:1
     },
+    domain:"example.com",
     autoUnlock:true,
     threads:5,
     congestionSleep:0.5,
@@ -20,7 +21,6 @@ export const config={
     recaptchaSleep:10,
     unlockingSleep:10,
     requestTimeout:5,
-    domain:"example.com",
 }
 const path0=path.join(__dirname,'../config.json')
 if(!fs.existsSync(path0)){
