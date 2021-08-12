@@ -73,12 +73,12 @@ async function getIds(batchNumber:number,token:string,password:string){
     while(true){
         const result=await basicallyGetIds(batchNumber,token,password)
         if(result===503){
-            clit.out('503.')
+            clit.out('503')
             await sleep(config.congestionSleep)
             continue
         }
         if(result===500){
-            clit.out('500.')
+            clit.out('500')
             await sleep(config.errSleep)
             continue
         }
@@ -197,7 +197,7 @@ async function basicallyUpdateComments(id:number|string,reply:number,token:strin
     }
     const cid=Math.max(...data1.map(val=>Number(val.cid)))
     const timestamp=Math.max(...data1.map(val=>Number(val.timestamp)))
-    clit.out(`cs${id} updated to c${cid} which is in ${prettyTimestamp(timestamp)}.`)
+    clit.out(`cs${id} updated to c${cid} which is in ${prettyTimestamp(timestamp)}`)
     return 200
 }
 async function updateComments(id:number|string,reply:number,token:string,password:string){
@@ -208,17 +208,17 @@ async function updateComments(id:number|string,reply:number,token:string,passwor
         }
         const result=await basicallyUpdateComments(id,reply,token,password)
         if(result===503){
-            clit.out('503.')
+            clit.out('503')
             await sleep(config.congestionSleep)
             continue
         }
         if(result===500){
-            clit.out('500.')
+            clit.out('500')
             await sleep(config.errSleep)
             continue
         }
         if(result===423){
-            clit.out('423.')
+            clit.out('423')
             if(config.autoUnlock){
                 await unlock()
             }
@@ -262,7 +262,7 @@ async function basicallyUpdateHole(id:number|string,token:string,password:string
         if(typeof result1==='number'){
             return 500
         }
-        clit.out(`h${id} included.`)
+        clit.out(`h${id} included`)
         return await updateComments(id,Number(result1.data.reply),token,password)
     }
     if(typeof result0==='number'){
@@ -299,7 +299,7 @@ async function basicallyUpdateHole(id:number|string,token:string,password:string
         deltaComments>0
         ||deltaLikes!==0
     ){
-        clit.out(`h${id} updated by ${deltaComments} comments and ${deltaLikes} likes.`)
+        clit.out(`h${id} updated by ${deltaComments} comments and ${deltaLikes} likes`)
     }
     return await updateComments(id,reply,token,password)
 }
@@ -311,12 +311,12 @@ async function updateHole(id:number,token:string,password:string){
         }
         const result=await basicallyUpdateHole(id,token,password)
         if(result===503){
-            clit.out('503.')
+            clit.out('503')
             await sleep(config.congestionSleep)
             continue
         }
         if(result===500){
-            clit.out('500.')
+            clit.out('500')
             await sleep(config.errSleep)
             continue
         }
@@ -346,7 +346,7 @@ async function updateHoles(ids:number[],token:string,password:string){
         if(result.includes(403)){
             return 403
         }
-        clit.out(`#${subIds.join(',')} checked.`)
+        clit.out(`#${subIds.join(',')} checked`)
         promises=[]
         subIds=[]
         await sleep(config.stepSleep)
@@ -387,7 +387,7 @@ async function basicallyUpdatePage(key:string,page:number|string,token:string,pa
         if(result.includes(403)){
             return 403
         }
-        clit.out(`#${subIds.join(',')} checked.`)
+        clit.out(`#${subIds.join(',')} checked`)
         promises=[]
         subIds=[]
         await sleep(config.stepSleep)
@@ -402,12 +402,12 @@ async function updatePage(key:string,page:number,token:string,password:string){
         }
         const result=await basicallyUpdatePage(key,page,token,password)
         if(result===503){
-            clit.out('503.')
+            clit.out('503')
             await sleep(config.congestionSleep)
             continue
         }
         if(result===500){
-            clit.out('500.')
+            clit.out('500')
             await sleep(config.errSleep)
             continue
         }
@@ -430,7 +430,7 @@ async function updatePages(key:string,pages:number[],token:string,password:strin
         if(result===403){
             return 403
         }
-        clit.out(`p${page} checked.`)
+        clit.out(`p${page} checked`)
     }
     return 200
 }
@@ -512,10 +512,10 @@ export async function main(){
     const {token,password,batches:{start,length}}=config
     const result=await updateBatches(start,length,token,password)
     if(result===401){
-        clit.out('401.')
+        clit.out('401')
     }else if(result===403){
-        clit.out('403.')
+        clit.out('403')
     }else{
-        clit.out('Finished.')
+        clit.out('Finished')
     }
 }
