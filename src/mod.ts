@@ -495,13 +495,13 @@ function prettyDate(stamp:string|number){
     const now=new Date()
     const year=date.getFullYear()
     const nowYear=now.getFullYear()
-    const md=(date.getMonth()+1)+'/'+
-    date.getDate()
-    const nowMD=(now.getMonth()+1)+'/'+
-    now.getDate()
-    const hms=date.getHours()+':'+
-    date.getMinutes()+':'+
-    date.getSeconds()
+    const md=(date.getMonth()+1)
+    +'/'+date.getDate()
+    const nowMD=(now.getMonth()+1)
+    +'/'+now.getDate()
+    const hms=date.getHours()
+    +':'+date.getMinutes()
+    +':'+date.getSeconds()
     if(year!==nowYear){
         return hms+' '+year+'/'+md
     }
