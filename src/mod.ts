@@ -197,7 +197,7 @@ async function basicallyUpdateComments(id:number|string,reply:number,token:strin
     }
     const cid=Math.max(...data1.map(val=>Number(val.cid)))
     const timestamp=Math.max(...data1.map(val=>Number(val.timestamp)))
-    clit.out(`cs${id} updated to c${cid} which is in ${prettyDate(timestamp)}.`)
+    clit.out(`cs${id} updated to c${cid} which is in ${prettyTimestamp(timestamp)}.`)
     return 200
 }
 async function updateComments(id:number|string,reply:number,token:string,password:string){
@@ -490,25 +490,23 @@ async function unlock(){
     await browser.close()
     unlocking=false
 }
-function prettyDate(stamp:string|number){
+function prettyTimestamp(stamp:string|number){
     const date=new Date(Number(stamp+'000'))
-    const now=new Date()
-    const year=date.getFullYear()
-    const nowYear=now.getFullYear()
-    const md=(date.getMonth()+1)
-    +'/'+date.getDate()
-    const nowMD=(now.getMonth()+1)
-    +'/'+now.getDate()
-    const hms=date.getHours()
-    +':'+date.getMinutes()
-    +':'+date.getSeconds()
-    if(year!==nowYear){
-        return hms+' '+year+'/'+md
-    }
-    if(nowMD!==md){
-        return hms+' '+md
-    }
-    return hms
+    return [
+        date.getHours(),
+        date.getMinutes(),
+        date.getSeconds(),
+    ]
+    .map(val=>val.toString().padStart(2,'0'))
+    .join(':')
+    +' '
+    +[
+        date.getMonth()+1,
+        date.getDate(),
+        date.getFullYear(),
+    ]
+    .map(val=>val.toString().padStart(2,'0'))
+    .join('/')
 }
 export async function main(){
     const {token,password,batches:{start,length}}=config
