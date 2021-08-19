@@ -34,64 +34,6 @@ async function get(path, params = {}) {
     }
     return 500;
 }
-async function basicallyGetIds(batchNumber, token, password) {
-    const result = await get(`local/ids${batchNumber}`, {
-        token: token,
-        password: password
-    });
-    if (result === 503) {
-        return 503;
-    }
-    if (result === 401) {
-        return 401;
-    }
-    if (result === 403) {
-        return 403;
-    }
-    if (typeof result === 'number') {
-        return 500;
-    }
-    return result.data;
-}
-async function getIds(batchNumber, token, password) {
-    while (true) {
-        const result = await basicallyGetIds(batchNumber, token, password);
-        if (result === 503) {
-            clit.out('503');
-            await sleep(init_1.config.congestionSleep);
-            continue;
-        }
-        if (result === 500) {
-            clit.out('500');
-            await sleep(init_1.config.errSleep);
-            continue;
-        }
-        if (result === 401) {
-            return 401;
-        }
-        if (result === 403) {
-            return 403;
-        }
-        return result;
-    }
-}
-function idsToRIds(data, batchNumber) {
-    const batchSize = 10000;
-    data = data.map(val => val % batchSize);
-    batchNumber *= batchSize;
-    const ids = {};
-    for (let i = 0; i < data.length; i++) {
-        ids[data[i]] = true;
-    }
-    const array = [];
-    for (let i = 0; i < batchSize; i++) {
-        if (ids[i]) {
-            continue;
-        }
-        array.push(batchNumber + i);
-    }
-    return array;
-}
 async function basicallyGetComments(id, token, password) {
     const data = await get(`cs${id}`, {
         update: '',
@@ -311,14 +253,23 @@ async function updateHole(id, token, password) {
         return 200;
     }
 }
-async function updateHoles(ids, token, password) {
+async function updateHoles() {
     let promises = [];
     let subIds = [];
-    for (let i = 0; i < ids.length; i++) {
-        const id = ids[i];
-        promises.push(updateHole(id, token, password));
+    for (let i = 0; i < init_1.ids.length; i++) {
+        const id = init_1.ids[i];
+        if (!isFinite(id)) {
+            continue;
+        }
+        promises.push(updateHole(id, init_1.config.token, init_1.config.password).then(val => {
+            if (val === 200) {
+                init_1.ids[i] = NaN;
+                init_1.saveIds();
+            }
+            return val;
+        }));
         subIds.push(id);
-        if (promises.length < init_1.config.threads && i < ids.length - 1) {
+        if (promises.length < init_1.config.threads && i < init_1.ids.length - 1) {
             continue;
         }
         const result = await Promise.all(promises);
@@ -402,50 +353,22 @@ async function updatePage(key, page, token, password) {
         return 200;
     }
 }
-async function updatePages(key, pages, token, password) {
-    for (let i = 0; i < pages.length; i++) {
-        const page = pages[i];
-        const result = await updatePage(key, page, token, password);
+async function updatePages() {
+    for (let i = 0; i < init_1.pages.length; i++) {
+        const page = init_1.pages[i];
+        if (!isFinite(page)) {
+            continue;
+        }
+        const result = await updatePage(init_1.config.key, page, init_1.config.token, init_1.config.password);
         if (result === 401) {
             return 401;
         }
         if (result === 403) {
             return 403;
         }
+        init_1.pages[i] = NaN;
+        init_1.savePages();
         clit.out(`p${page} checked`);
-    }
-    return 200;
-}
-async function updateBatch(batchNumber, token, password) {
-    if (batchNumber === -1) {
-        return await updatePages('', Array.from({ length: 100 }, (v, i) => i + 1), token, password);
-    }
-    if (batchNumber % 1 === 0) {
-        return await updateHoles(idsToRIds([], batchNumber), token, password);
-    }
-    batchNumber = Math.floor(batchNumber);
-    const ids = await getIds(batchNumber, token, password);
-    if (ids === 401) {
-        return 401;
-    }
-    if (ids === 403) {
-        return 403;
-    }
-    return await updateHoles(idsToRIds(ids, batchNumber), token, password);
-}
-async function updateBatches(start, length, token, password) {
-    if (start === -1) {
-        length = 1;
-    }
-    for (let i = 0; i < length; i++) {
-        const batchNumber = start + i;
-        const result = await updateBatch(batchNumber, token, password);
-        if (result === 401) {
-            return 401;
-        }
-        if (result === 403) {
-            return 403;
-        }
     }
     return 200;
 }
@@ -492,16 +415,24 @@ function prettyTimestamp(stamp) {
             .join('/');
 }
 async function main() {
-    const { token, password, batches: { start, length } } = init_1.config;
-    const result = await updateBatches(start, length, token, password);
+    let result = await updateHoles();
     if (result === 401) {
         clit.out('401');
+        return;
     }
-    else if (result === 403) {
+    if (result === 403) {
         clit.out('403');
+        return;
     }
-    else {
-        clit.out('Finished');
+    result = await updatePages();
+    if (result === 401) {
+        clit.out('401');
+        return;
     }
+    if (result === 403) {
+        clit.out('403');
+        return;
+    }
+    clit.out('Finished');
 }
 exports.main = main;

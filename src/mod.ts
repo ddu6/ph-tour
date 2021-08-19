@@ -1,4 +1,4 @@
-import {config} from './init'
+import {config, ids, pages, saveIds, savePages} from './init'
 import {chromium} from 'playwright-chromium'
 import {CLIT} from '@ddu6/cli-tools'
 const clit=new CLIT(__dirname,config)
@@ -49,64 +49,6 @@ async function get(path:string,params:Record<string,string>={}){
         clit.log(err)
     }
     return 500
-}
-async function basicallyGetIds(batchNumber:number,token:string,password:string){
-    const result:{data:number[]}|number=await get(`local/ids${batchNumber}`,{
-        token:token,
-        password:password
-    })
-    if(result===503){
-        return 503
-    }
-    if(result===401){
-        return 401
-    }
-    if(result===403){
-        return 403
-    }
-    if(typeof result==='number'){
-        return 500
-    }
-    return result.data
-}
-async function getIds(batchNumber:number,token:string,password:string){
-    while(true){
-        const result=await basicallyGetIds(batchNumber,token,password)
-        if(result===503){
-            clit.out('503')
-            await sleep(config.congestionSleep)
-            continue
-        }
-        if(result===500){
-            clit.out('500')
-            await sleep(config.errSleep)
-            continue
-        }
-        if(result===401){
-            return 401
-        }
-        if(result===403){
-            return 403
-        }
-        return result
-    }
-}
-function idsToRIds(data:number[],batchNumber:number){
-    const batchSize=10000
-    data=data.map(val=>val%batchSize)
-    batchNumber*=batchSize
-    const ids:Record<number,boolean>={}
-    for(let i=0;i<data.length;i++){
-        ids[data[i]]=true
-    }
-    const array:number[]=[]
-    for(let i=0;i<batchSize;i++){
-        if(ids[i]){
-            continue
-        }
-        array.push(batchNumber+i)
-    }
-    return array
 }
 async function basicallyGetComments(id:number|string,token:string,password:string){
     const data:{data:CommentData[]}|number=await get(`cs${id}`,{
@@ -329,12 +271,21 @@ async function updateHole(id:number,token:string,password:string){
         return 200
     }
 }
-async function updateHoles(ids:number[],token:string,password:string){
+async function updateHoles(){
     let promises:Promise<200|401|403>[]=[]
     let subIds:number[]=[]
     for(let i=0;i<ids.length;i++){
         const id=ids[i]
-        promises.push(updateHole(id,token,password))
+        if(!isFinite(id)){
+            continue
+        }
+        promises.push(updateHole(id,config.token,config.password).then(val=>{
+            if(val===200){
+                ids[i]=NaN
+                saveIds()
+            }
+            return val
+        }))
         subIds.push(id)
         if(promises.length<config.threads&&i<ids.length-1){
             continue
@@ -420,50 +371,22 @@ async function updatePage(key:string,page:number,token:string,password:string){
         return 200
     }
 }
-async function updatePages(key:string,pages:number[],token:string,password:string){
+async function updatePages(){
     for(let i=0;i<pages.length;i++){
         const page=pages[i]
-        const result=await updatePage(key,page,token,password)
+        if(!isFinite(page)){
+            continue
+        }
+        const result=await updatePage(config.key,page,config.token,config.password)
         if(result===401){
             return 401
         }
         if(result===403){
             return 403
         }
+        pages[i]=NaN
+        savePages()
         clit.out(`p${page} checked`)
-    }
-    return 200
-}
-async function updateBatch(batchNumber:number,token:string,password:string){
-    if(batchNumber===-1){
-        return await updatePages('',Array.from({length:100},(v,i)=>i+1),token,password)
-    }
-    if(batchNumber%1===0){
-        return await updateHoles(idsToRIds([],batchNumber),token,password)
-    }
-    batchNumber=Math.floor(batchNumber)
-    const ids=await getIds(batchNumber,token,password)
-    if(ids===401){
-        return 401
-    }
-    if(ids===403){
-        return 403
-    }
-    return await updateHoles(idsToRIds(ids,batchNumber),token,password)
-}
-async function updateBatches(start:number,length:number,token:string,password:string){
-    if(start===-1){
-        length=1
-    }
-    for(let i=0;i<length;i++){
-        const batchNumber=start+i
-        const result=await updateBatch(batchNumber,token,password)
-        if(result===401){
-            return 401
-        }
-        if(result===403){
-            return 403
-        }
     }
     return 200
 }
@@ -509,13 +432,23 @@ function prettyTimestamp(stamp:string|number){
     .join('/')
 }
 export async function main(){
-    const {token,password,batches:{start,length}}=config
-    const result=await updateBatches(start,length,token,password)
+    let result=await updateHoles()
     if(result===401){
         clit.out('401')
-    }else if(result===403){
-        clit.out('403')
-    }else{
-        clit.out('Finished')
+        return
     }
+    if(result===403){
+        clit.out('403')
+        return
+    }
+    result=await updatePages()
+    if(result===401){
+        clit.out('401')
+        return
+    }
+    if(result===403){
+        clit.out('403')
+        return
+    }
+    clit.out('Finished')
 }
