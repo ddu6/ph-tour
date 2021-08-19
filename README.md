@@ -12,7 +12,7 @@ cd ph-backup
 ```
 npm i
 ```
-Fill in `config.json`.
+Fill in `config.json`, `ids`, `pages`.
 
 ## Start
 ```
