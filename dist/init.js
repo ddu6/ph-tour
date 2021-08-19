@@ -47,11 +47,17 @@ if (!fs_1.existsSync(path1)) {
     saveIds();
 }
 else {
-    exports.ids = fs_1.readFileSync(path1, { encoding: 'utf8' }).trim().split(/\s+/).map(Number);
+    const string = fs_1.readFileSync(path1, { encoding: 'utf8' }).trim();
+    if (string.length > 0) {
+        exports.ids = string.split(/\s+/).map(Number);
+    }
 }
 if (!fs_1.existsSync(path2)) {
     savePages();
 }
 else {
-    exports.pages = fs_1.readFileSync(path2, { encoding: 'utf8' }).trim().split(/\s+/).map(Number);
+    const string = fs_1.readFileSync(path2, { encoding: 'utf8' }).trim();
+    if (string.length > 0) {
+        exports.pages = string.split(/\s+/).map(Number);
+    }
 }

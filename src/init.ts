@@ -40,10 +40,16 @@ if(!existsSync(path0)){
 if(!existsSync(path1)){
     saveIds()
 }else{
-    ids=readFileSync(path1,{encoding:'utf8'}).trim().split(/\s+/).map(Number)
+    const string=readFileSync(path1,{encoding:'utf8'}).trim()
+    if(string.length>0){
+        ids=string.split(/\s+/).map(Number)
+    }
 }
 if(!existsSync(path2)){
     savePages()
 }else{
-    pages=readFileSync(path2,{encoding:'utf8'}).trim().split(/\s+/).map(Number)
+    const string=readFileSync(path2,{encoding:'utf8'}).trim()
+    if(string.length>0){
+        pages=string.split(/\s+/).map(Number)
+    }
 }

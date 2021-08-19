@@ -415,23 +415,21 @@ function prettyTimestamp(stamp) {
             .join('/');
 }
 async function main() {
-    let result = await updateHoles();
-    if (result === 401) {
-        clit.out('401');
-        return;
+    switch (await updateHoles()) {
+        case 401:
+            clit.out('401');
+            return;
+        case 403:
+            clit.out('403');
+            return;
     }
-    if (result === 403) {
-        clit.out('403');
-        return;
-    }
-    result = await updatePages();
-    if (result === 401) {
-        clit.out('401');
-        return;
-    }
-    if (result === 403) {
-        clit.out('403');
-        return;
+    switch (await updatePages()) {
+        case 401:
+            clit.out('401');
+            return;
+        case 403:
+            clit.out('403');
+            return;
     }
     clit.out('Finished');
 }
