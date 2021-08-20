@@ -29,12 +29,60 @@ exports.pages = [];
 const path0 = path_1.join(__dirname, '../config.json');
 const path1 = path_1.join(__dirname, '../ids');
 const path2 = path_1.join(__dirname, '../pages');
+function numbersTosnumbers(numbers) {
+    numbers = numbers.filter(isFinite);
+    if (numbers.length === 0) {
+        return '';
+    }
+    const array = [];
+    let s = numbers[0];
+    let e = s;
+    for (let i = 1; i <= numbers.length; i++) {
+        const number = numbers[i];
+        if (number === e + 1) {
+            e = number;
+            continue;
+        }
+        if (s === e) {
+            array.push(s.toString());
+        }
+        else {
+            array.push(`${s}-${e}`);
+        }
+        e = s = number;
+    }
+    return array.join('\n');
+}
+function snumbersTonumbers(snumbers) {
+    snumbers = snumbers.trim();
+    if (snumbers.length === 0) {
+        return [];
+    }
+    const array = snumbers.split(/\s+/);
+    const numbers = [];
+    for (const string of array) {
+        if (/^\d+$/.test(string)) {
+            numbers.push(Number(string));
+            continue;
+        }
+        const match = string.match(/^(\d+)-(\d+)$/);
+        if (match === null) {
+            continue;
+        }
+        const s = Number(match[1]);
+        const e = Number(match[2]);
+        for (let n = s; n <= e; n++) {
+            numbers.push(n);
+        }
+    }
+    return numbers;
+}
 function saveIds() {
-    fs_1.writeFileSync(path1, exports.ids.filter(isFinite).join('\n'));
+    fs_1.writeFileSync(path1, numbersTosnumbers(exports.ids));
 }
 exports.saveIds = saveIds;
 function savePages() {
-    fs_1.writeFileSync(path2, exports.pages.filter(isFinite).join('\n'));
+    fs_1.writeFileSync(path2, numbersTosnumbers(exports.pages));
 }
 exports.savePages = savePages;
 if (!fs_1.existsSync(path0)) {
@@ -47,17 +95,11 @@ if (!fs_1.existsSync(path1)) {
     saveIds();
 }
 else {
-    const string = fs_1.readFileSync(path1, { encoding: 'utf8' }).trim();
-    if (string.length > 0) {
-        exports.ids = string.split(/\s+/).map(Number);
-    }
+    exports.ids = snumbersTonumbers(fs_1.readFileSync(path1, { encoding: 'utf8' }));
 }
 if (!fs_1.existsSync(path2)) {
     savePages();
 }
 else {
-    const string = fs_1.readFileSync(path2, { encoding: 'utf8' }).trim();
-    if (string.length > 0) {
-        exports.pages = string.split(/\s+/).map(Number);
-    }
+    exports.pages = snumbersTonumbers(fs_1.readFileSync(path2, { encoding: 'utf8' }));
 }
