@@ -297,7 +297,7 @@ async function updateHoles(){
         if(result.includes(403)){
             return 403
         }
-        clit.out(`#${subIds.join(',')} checked`)
+        clit.out(`${subIds.join(',')} checked`)
         promises=[]
         subIds=[]
         await sleep(config.stepSleep)
@@ -338,7 +338,7 @@ async function basicallyUpdatePage(key:string,page:number|string,token:string,pa
         if(result.includes(403)){
             return 403
         }
-        clit.out(`#${subIds.join(',')} checked`)
+        clit.out(`${subIds.join(',')} checked`)
         promises=[]
         subIds=[]
         await sleep(config.stepSleep)

@@ -279,7 +279,7 @@ async function updateHoles() {
         if (result.includes(403)) {
             return 403;
         }
-        clit.out(`#${subIds.join(',')} checked`);
+        clit.out(`${subIds.join(',')} checked`);
         promises = [];
         subIds = [];
         await sleep(init_1.config.stepSleep);
@@ -320,7 +320,7 @@ async function basicallyUpdatePage(key, page, token, password) {
         if (result.includes(403)) {
             return 403;
         }
-        clit.out(`#${subIds.join(',')} checked`);
+        clit.out(`${subIds.join(',')} checked`);
         promises = [];
         subIds = [];
         await sleep(init_1.config.stepSleep);
