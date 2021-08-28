@@ -18,7 +18,7 @@ export const config={
     stepSleep:1,
     errSleep:1,
     recaptchaSleep:10,
-    unlockingSleep:10,
+    unlockSleep:10,
     requestTimeout:10,
 }
 export let ids:number[]=[]
