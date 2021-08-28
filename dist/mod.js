@@ -77,23 +77,25 @@ async function basicallyUpdateComments(id, reply, token, password) {
     if (reply === 0) {
         return 200;
     }
-    const result0 = await basicallyGetLocalComments(id, token, password);
-    if (result0 === 401) {
-        return 401;
-    }
-    if (result0 === 403) {
-        return 403;
-    }
-    if (result0 === 503) {
-        return 503;
-    }
-    if (typeof result0 === 'number') {
-        return 500;
-    }
-    const data0 = result0.data;
-    const length0 = data0.length;
-    if (reply >= 0 && length0 >= reply) {
-        return 200;
+    if (reply > 0) {
+        const result0 = await basicallyGetLocalComments(id, token, password);
+        if (result0 === 401) {
+            return 401;
+        }
+        if (result0 === 403) {
+            return 403;
+        }
+        if (result0 === 503) {
+            return 503;
+        }
+        if (typeof result0 === 'number') {
+            return 500;
+        }
+        const data0 = result0.data;
+        const length0 = data0.length;
+        if (length0 >= reply) {
+            return 200;
+        }
     }
     const result1 = await basicallyGetComments(id, token, password);
     if (result1 === 423) {
@@ -121,9 +123,11 @@ async function basicallyUpdateComments(id, reply, token, password) {
             return 423;
         }
     }
-    const cid = Math.max(...data1.map(val => Number(val.cid)));
-    const timestamp = Math.max(...data1.map(val => Number(val.timestamp)));
-    clit.out(`cs${id} updated to c${cid} which is in ${prettyTimestamp(timestamp)}`);
+    if (data1.length > 0) {
+        const cid = Math.max(...data1.map(val => Number(val.cid)));
+        const timestamp = Math.max(...data1.map(val => Number(val.timestamp)));
+        clit.log(`cs${id} updated to c${cid} which is in ${prettyTimestamp(timestamp)}`);
+    }
     return 200;
 }
 async function updateComments(id, reply, token, password) {
